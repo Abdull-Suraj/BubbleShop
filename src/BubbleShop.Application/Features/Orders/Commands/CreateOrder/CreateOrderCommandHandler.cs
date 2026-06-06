@@ -41,7 +41,7 @@ public sealed class CreateOrderCommandHandler(
             orderItems.Add(OrderItem.Create(Guid.Empty, product.Id, item.Quantity, product.Price));
         }
 
-        var order = Order.Create(request.CustomerId, orderItems.Select(i => OrderItem.Create(Guid.Empty, i.ProductId, i.Quantity, i.UnitPrice)));
+        var order = Order.Create(request.CustomerId, orderItems);
         await orderRepository.AddAsync(order, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         logger.LogInformation("Order {OrderId} created", order.Id);

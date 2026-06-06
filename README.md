@@ -18,16 +18,16 @@ WhatsApp Business Sales Agent backend built with ASP.NET Core 8 Web API and Clea
 1. Configure `src/BubbleShop.API/appsettings.json` values.
 2. Restore packages:
    ```bash
-   dotnet restore /tmp/workspace/Abdull-Suraj/BubbleShop/BubbleShop.slnx
+   dotnet restore BubbleShop.slnx
    ```
 3. Apply migrations:
    ```bash
-   dotnet ef migrations add InitialCreate --project /tmp/workspace/Abdull-Suraj/BubbleShop/src/BubbleShop.Infrastructure --startup-project /tmp/workspace/Abdull-Suraj/BubbleShop/src/BubbleShop.API
-   dotnet ef database update --project /tmp/workspace/Abdull-Suraj/BubbleShop/src/BubbleShop.Infrastructure --startup-project /tmp/workspace/Abdull-Suraj/BubbleShop/src/BubbleShop.API
+   dotnet ef migrations add InitialCreate --project src/BubbleShop.Infrastructure --startup-project src/BubbleShop.API
+   dotnet ef database update --project src/BubbleShop.Infrastructure --startup-project src/BubbleShop.API
    ```
 4. Run API:
    ```bash
-   dotnet run --project /tmp/workspace/Abdull-Suraj/BubbleShop/src/BubbleShop.API
+   dotnet run --project src/BubbleShop.API
    ```
 
 ## External services configuration
