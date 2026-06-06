@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="BubbleShop.API/BubbleShop.API.csproj" Id="9c25836f-107d-4b72-b847-6d2cc190dea8" />
+    <Project Path="BubbleShop.Application/BubbleShop.Application.csproj" Id="c35da18a-0f07-4a7f-9815-8046bdb24375" />
+    <Project Path="BubbleShop.Domain/BubbleShop.Domain.csproj" Id="d0a0e9c8-8083-47d2-833b-f89ab6b7c3fa" />
+    <Project Path="BubbleShop.Infrastructure/BubbleShop.Infrastructure.csproj" Id="181c8d2c-f571-476c-b0ad-252838c2c0b8" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="BubbleShop.Tests/BubbleShop.Tests.csproj" Id="c9bccf51-3a66-40b0-a700-a27748c59263" />
+  </Folder>
+</Solution>

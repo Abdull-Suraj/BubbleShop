@@ -1,0 +1,6 @@
+@BubbleShop.API_HostAddress = http://localhost:5189
+
+GET {{BubbleShop.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
