@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BubbleShop.API/BubbleShop.API.csproj" />
+    <Project Path="src/BubbleShop.Application/BubbleShop.Application.csproj" />
+    <Project Path="src/BubbleShop.Domain/BubbleShop.Domain.csproj" />
+    <Project Path="src/BubbleShop.Infrastructure/BubbleShop.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BubbleShop.Application.Tests/BubbleShop.Application.Tests.csproj" />
+    <Project Path="tests/BubbleShop.Domain.Tests/BubbleShop.Domain.Tests.csproj" />
+    <Project Path="tests/BubbleShop.Infrastructure.Tests/BubbleShop.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>
