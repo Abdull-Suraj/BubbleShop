@@ -29,7 +29,7 @@ public sealed class HandleIncomingMessageCommandHandler(
         var conversation = existingConversation ?? Conversation.Create(customerId, request.FromNumber);
 
         var history = conversation.MessageHistory;
-        history.Add(new ChatMessage { Role = ChatRole.User, Content = request.MessageText, Timestamp = DateTimeOffset.UtcNow });
+        history.Add(new ChatMessage { Role = ChatRole.User, Content = request.MessageText, Timestamp = DateTime.UtcNow });
 
         var aiResult = await mediator.Send(new ProcessAgentTurnCommand(history, request.MessageText, customerId.ToString()), cancellationToken);
         if (aiResult.IsFailure || aiResult.Value is null)

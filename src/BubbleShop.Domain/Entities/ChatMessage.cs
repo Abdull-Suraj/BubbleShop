@@ -6,5 +6,5 @@ public sealed class ChatMessage
 {
     public ChatRole Role { get; init; }
     public string Content { get; init; } = string.Empty;
-    public DateTimeOffset Timestamp { get; init; } = DateTimeOffset.UtcNow;
+    public DateTime Timestamp { get; init; } = DateTime.UtcNow;
 }

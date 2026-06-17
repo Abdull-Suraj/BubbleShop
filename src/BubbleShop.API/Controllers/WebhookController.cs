@@ -1,69 +1,96 @@
 using BubbleShop.Application.Features.Payments.Commands.HandlePaymentWebhook;
-using BubbleShop.Application.Features.WhatsApp.Commands.HandleIncomingMessage;
-using BubbleShop.Infrastructure.Configuration;
-using BubbleShop.Infrastructure.ExternalServices.WhatsApp;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using Stripe;
 using System.Text.Json;
 
 namespace BubbleShop.API.Controllers;
 
 [ApiController]
-[Route("api/webhook")]
-public sealed class WebhookController(IMediator mediator, IOptions<WhatsAppOptions> whatsAppOptions, IOptions<StripeOptions> stripeOptions) : ControllerBase
+[Route("api/webhooks")]
+[Produces("application/json")]
+public sealed class WebhooksController : ControllerBase
 {
-    [HttpGet("whatsapp")]
-    public IActionResult Verify([FromQuery(Name = "hub.mode")] string mode, [FromQuery(Name = "hub.verify_token")] string verifyToken, [FromQuery(Name = "hub.challenge")] string challenge)
-    {
-        if (mode == "subscribe" && verifyToken == whatsAppOptions.Value.VerifyToken)
-        {
-            return Ok(challenge);
-        }
+    private readonly IMediator _mediator;
+    private readonly ILogger<WebhooksController> _logger;
 
-        return Forbid();
+    public WebhooksController(IMediator mediator, ILogger<WebhooksController> logger)
+    {
+        _mediator = mediator;
+        _logger = logger;
     }
 
-    [HttpPost("whatsapp")]
-    public async Task<IActionResult> ReceiveWhatsApp([FromBody] WhatsAppWebhookPayload payload, CancellationToken cancellationToken)
+    /// <summary>
+    /// Flutterwave payment webhook
+    /// </summary>
+    [HttpPost("flutterwave")]
+    public async Task<IActionResult> FlutterwaveWebhook(CancellationToken cancellationToken)
     {
-        var message = payload.Entry.SelectMany(x => x.Changes).SelectMany(x => x.Value.Messages).FirstOrDefault();
-        if (message is null || string.IsNullOrWhiteSpace(message.Text.Body))
-        {
-            return Ok();
-        }
-
-        var result = await mediator.Send(new HandleIncomingMessageCommand(message.From, message.Text.Body), cancellationToken);
-        return result.IsSuccess ? Ok() : BadRequest(result.Error);
-    }
-
-    [HttpPost("payment")]
-    public async Task<IActionResult> ReceivePaymentWebhook(CancellationToken cancellationToken)
-    {
-        using var reader = new StreamReader(Request.Body);
-        var json = await reader.ReadToEndAsync(cancellationToken);
-        var signature = Request.Headers["Stripe-Signature"].ToString();
-
-        Event stripeEvent;
         try
         {
-            stripeEvent = EventUtility.ConstructEvent(json, signature, stripeOptions.Value.WebhookSecret);
+            // Read the raw payload from the request body
+            using var reader = new StreamReader(Request.Body);
+            var payload = await reader.ReadToEndAsync(cancellationToken);
+
+            var signature = Request.Headers["verif-hash"].FirstOrDefault() ?? string.Empty;
+
+            // Parse the payload to extract OrderId and TransactionId
+            using var doc = System.Text.Json.JsonDocument.Parse(payload);
+            var root = doc.RootElement;
+            var data = root.GetProperty("data");
+
+            // Extract transaction ID
+            var transactionId = data.GetProperty("id").GetString() ?? string.Empty;
+
+            // Extract order ID from metadata or tx_ref
+            var orderId = ExtractOrderIdFromPayload(data);
+
+            if (orderId == Guid.Empty)
+            {
+                _logger.LogWarning("Could not extract OrderId from Flutterwave webhook payload");
+                return Ok(new { status = "received" });
+            }
+
+            var command = new HandlePaymentWebhookCommand(
+                OrderId: orderId,
+                TransactionId: transactionId,
+                GatewayResponse: payload,
+                Provider: "Flutterwave"
+            );
+
+            await _mediator.Send(command, cancellationToken);
+            return Ok(new { status = "success" });
         }
-        catch
+        catch (Exception ex)
         {
-            return BadRequest();
+            _logger.LogError(ex, "Flutterwave webhook error: {Error}", ex.Message);
+            // Always return 200 to Flutterwave to prevent retries
+            return Ok(new { status = "received" });
+        }
+    }
+
+    private Guid ExtractOrderIdFromPayload(JsonElement data)
+    {
+        // Try to get order_id from metadata
+        if (data.TryGetProperty("meta", out var meta) &&
+            meta.TryGetProperty("order_id", out var orderIdProp))
+        {
+            if (Guid.TryParse(orderIdProp.GetString(), out var orderId))
+                return orderId;
         }
 
-        if (stripeEvent.Type == EventTypes.CheckoutSessionCompleted)
+        // Try to extract from tx_ref
+        if (data.TryGetProperty("tx_ref", out var txRef))
         {
-            var session = stripeEvent.Data.Object as Stripe.Checkout.Session;
-            if (session?.Metadata.TryGetValue("order_id", out var orderIdRaw) == true && Guid.TryParse(orderIdRaw, out var orderId))
+            var txRefValue = txRef.GetString() ?? string.Empty;
+            var parts = txRefValue.Split('-');
+            foreach (var part in parts)
             {
-                await mediator.Send(new HandlePaymentWebhookCommand(orderId, session.PaymentIntentId ?? session.Id), cancellationToken);
+                if (Guid.TryParse(part, out var guid))
+                    return guid;
             }
         }
 
-        return Ok();
+        return Guid.Empty;
     }
+
 }

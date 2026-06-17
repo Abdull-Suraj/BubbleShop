@@ -1,4 +1,6 @@
+using BubbleShop.Application.AppServices;
 using BubbleShop.Application.Common.Behaviours;
+using BubbleShop.Application.Common.Interfaces;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +11,8 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+   
+        services.AddScoped<IAutomationService, AutomationService>();
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
         services.AddAutoMapper(typeof(DependencyInjection).Assembly);
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);

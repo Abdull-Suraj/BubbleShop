@@ -22,4 +22,9 @@
     <ProjectReference Include="..\BubbleShop.Infrastructure\BubbleShop.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DTOs\Responses\" />
+    <Folder Include="DTOs\Requests\" />
+  </ItemGroup>
+
 </Project>

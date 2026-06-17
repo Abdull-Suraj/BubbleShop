@@ -26,4 +26,8 @@
     <ProjectReference Include="..\BubbleShop.Application\BubbleShop.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Persistence\Configurations\" />
+  </ItemGroup>
+
 </Project>

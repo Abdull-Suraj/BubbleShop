@@ -1,4 +1,5 @@
 using BubbleShop.Application.Common.Models;
+using BubbleShop.Application.DTOs;
 using BubbleShop.Application.Features.Customers.Queries.GetCustomerByWhatsAppNumber;
 using BubbleShop.Domain.Interfaces.Repositories;
 using MediatR;

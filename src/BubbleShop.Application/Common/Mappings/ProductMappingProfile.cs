@@ -1,4 +1,5 @@
 using AutoMapper;
+using BubbleShop.Application.DTOs;
 using BubbleShop.Application.Features.Products.Queries.GetAllProducts;
 using BubbleShop.Domain.Entities;
 

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BubbleShop.Infrastructure.Persistence.Repositories;
 
-public sealed class ConversationRepository(AppDbContext dbContext) : Repository<Conversation>(dbContext), IConversationRepository
+public class ConversationRepository(AppDbContext dbContext) : Repository<Conversation>(dbContext), IConversationRepository
 {
     public async Task<Conversation?> GetByWhatsAppNumberAsync(string whatsappNumber, CancellationToken cancellationToken = default)
         => await DbContext.Conversations.FirstOrDefaultAsync(x => x.WhatsAppNumber == whatsappNumber, cancellationToken);

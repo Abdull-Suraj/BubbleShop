@@ -1,30 +1,42 @@
+using BubbleShop.Domain.Common;
 using BubbleShop.Domain.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace BubbleShop.Infrastructure.Persistence.Repositories;
 
-public class Repository<T>(AppDbContext dbContext) : IRepository<T> where T : class
+public abstract class Repository<T> : IRepository<T> where T : BaseEntity
 {
-    protected readonly AppDbContext DbContext = dbContext;
+    protected readonly AppDbContext DbContext;
+    protected readonly DbSet<T> _dbSet;
+
+    protected Repository(AppDbContext dbContext)
+    {
+        DbContext = dbContext;
+        _dbSet = DbContext.Set<T>();
+    }
 
     public virtual async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-        => await DbContext.Set<T>().FindAsync([id], cancellationToken);
+        => await _dbSet.FirstOrDefaultAsync(e => e.Id == id && !e.IsDeleted, cancellationToken);
 
     public virtual async Task<IReadOnlyList<T>> GetAllAsync(CancellationToken cancellationToken = default)
-        => await DbContext.Set<T>().ToListAsync(cancellationToken);
+        => await _dbSet.Where(e => !e.IsDeleted).ToListAsync(cancellationToken);
 
-    public virtual async Task AddAsync(T entity, CancellationToken cancellationToken = default)
-        => await DbContext.Set<T>().AddAsync(entity, cancellationToken);
+    public virtual async Task<T> AddAsync(T entity, CancellationToken cancellationToken = default)
+    {
+        await _dbSet.AddAsync(entity, cancellationToken);
+        return entity;
+    }
 
     public virtual Task UpdateAsync(T entity, CancellationToken cancellationToken = default)
     {
-        DbContext.Set<T>().Update(entity);
+        _dbSet.Update(entity);
         return Task.CompletedTask;
     }
 
     public virtual Task DeleteAsync(T entity, CancellationToken cancellationToken = default)
     {
-        DbContext.Set<T>().Remove(entity);
+        entity.SoftDelete();  // Soft delete instead of hard delete
+        _dbSet.Update(entity);
         return Task.CompletedTask;
     }
 }

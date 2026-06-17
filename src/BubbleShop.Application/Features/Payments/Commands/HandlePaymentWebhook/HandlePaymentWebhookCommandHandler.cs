@@ -7,24 +7,70 @@ using MediatR;
 
 namespace BubbleShop.Application.Features.Payments.Commands.HandlePaymentWebhook;
 
-public sealed class HandlePaymentWebhookCommandHandler(IOrderRepository orderRepository, IUnitOfWork unitOfWork)
-    : IRequestHandler<HandlePaymentWebhookCommand, Result>
+public sealed class HandlePaymentWebhookCommandHandler : IRequestHandler<HandlePaymentWebhookCommand, Result>
 {
+    private readonly IOrderRepository _orderRepository;
+    private readonly IPaymentRepository _paymentRepository;
+    private readonly IUnitOfWork _unitOfWork;
+
+    public HandlePaymentWebhookCommandHandler(
+        IOrderRepository orderRepository,
+        IPaymentRepository paymentRepository,
+        IUnitOfWork unitOfWork)
+    {
+        _orderRepository = orderRepository;
+        _paymentRepository = paymentRepository;
+        _unitOfWork = unitOfWork;
+    }
+
     public async Task<Result> Handle(HandlePaymentWebhookCommand request, CancellationToken cancellationToken)
     {
-        var order = await orderRepository.GetByIdAsync(request.OrderId, cancellationToken);
-        if (order is null)
+        try
         {
-            return Result.Failure("Order not found.");
+            // Get order
+            var order = await _orderRepository.GetByIdAsync(request.OrderId, cancellationToken);
+            if (order is null)
+            {
+                return Result.Failure("Order not found.", "NotFound");
+            }
+
+            // Get or create payment
+            Payment payment = order.Payment;
+            if (payment is null)
+            {
+                // Create new payment
+                payment = new Payment(
+                    orderId: order.Id,
+                    businessId: order.BusinessId,
+                    amount: order.TotalAmount,
+                    paymentMethod: PaymentMethod.CreditCard,
+                    customerId: order.CustomerId,
+                    provider: "Flutterwave"
+                );
+                await _paymentRepository.AddAsync(payment, cancellationToken);
+            }
+
+            // Mark payment as successful
+            payment.MarkSuccessful(request.TransactionId, request.GatewayResponse);
+
+            // Attach payment to order
+            order.AttachPayment(payment);
+
+            // Update order status - Use PaymentReceived instead of Paid
+            order.UpdateStatus(OrderStatus.PaymentReceived);
+
+            // If you want to confirm the order automatically
+            // order.Confirm();
+
+            await _orderRepository.UpdateAsync(order, cancellationToken);
+            await _paymentRepository.UpdateAsync(payment, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return Result.Success();
         }
-
-        var payment = order.Payment ?? Payment.Create(order.Id, "Stripe", order.TotalAmount);
-        payment.MarkCompleted(request.TransactionId);
-        order.AttachPayment(payment);
-        order.UpdateStatus(OrderStatus.Paid);
-
-        await orderRepository.UpdateAsync(order, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-        return Result.Success();
+        catch (Exception ex)
+        {
+            return Result.Failure($"Failed to process payment webhook: {ex.Message}");
+        }
     }
 }

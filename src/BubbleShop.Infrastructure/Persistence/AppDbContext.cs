@@ -1,4 +1,5 @@
 using BubbleShop.Application.Common.Interfaces;
+using BubbleShop.Domain.Common;
 using BubbleShop.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 

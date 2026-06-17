@@ -1,4 +1,5 @@
 using BubbleShop.Application.Common.Models;
+using BubbleShop.Application.DTOs;
 using BubbleShop.Domain.Interfaces.Repositories;
 using MediatR;
 
@@ -10,8 +11,19 @@ public sealed class GetCustomerByWhatsAppNumberQueryHandler(ICustomerRepository 
     public async Task<Result<CustomerDto>> Handle(GetCustomerByWhatsAppNumberQuery request, CancellationToken cancellationToken)
     {
         var customer = await customerRepository.GetByWhatsAppNumberAsync(request.WhatsAppNumber, cancellationToken);
-        return customer is null
-            ? Result<CustomerDto>.Failure("Customer not found.")
-            : Result<CustomerDto>.Success(new CustomerDto(customer.Id, customer.WhatsAppNumber, customer.Name, customer.Email, customer.Address));
+
+        if (customer is null)
+            return Result<CustomerDto>.Failure("Customer not found.");
+
+        var customerDto = new CustomerDto
+        {
+            Id = customer.Id,
+            WhatsAppNumber = customer.WhatsAppNumber,
+            Name = customer.Name,
+            Email = customer.Email,
+            Address = customer.Address
+        };
+
+        return Result<CustomerDto>.Success(customerDto);
     }
 }

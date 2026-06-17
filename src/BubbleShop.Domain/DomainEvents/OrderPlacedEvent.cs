@@ -1,5 +1,17 @@
+
+using MediatR;
 using BubbleShop.Domain.Entities;
 
 namespace BubbleShop.Domain.DomainEvents;
 
-public sealed record OrderPlacedEvent(Order Order) : IsDomainEvent;
+public record OrderPlacedEvent : INotification
+{
+    public Order Order { get; }
+    public DateTime OccurredOn { get; }
+
+    public OrderPlacedEvent(Order order)
+    {
+        Order = order;
+        OccurredOn = DateTime.UtcNow;
+    }
+}

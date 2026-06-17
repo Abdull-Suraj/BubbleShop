@@ -1,18 +1,75 @@
+// Application/Features/Products/Queries/GetAllProducts/GetAllProductsQueryHandler.cs
 using AutoMapper;
 using BubbleShop.Application.Common.Models;
+using BubbleShop.Application.DTOs;
 using BubbleShop.Domain.Interfaces.Repositories;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace BubbleShop.Application.Features.Products.Queries.GetAllProducts;
 
-public sealed class GetAllProductsQueryHandler(IProductRepository productRepository, IMapper mapper, ILogger<GetAllProductsQueryHandler> logger)
-    : IRequestHandler<GetAllProductsQuery, Result<IReadOnlyList<ProductDto>>>
+public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, Result<IReadOnlyList<ProductDto>>>
 {
+    private readonly IProductRepository _productRepository;
+    private readonly IMapper _mapper;
+    private readonly ILogger<GetAllProductsQueryHandler> _logger;
+
+    public GetAllProductsQueryHandler(
+        IProductRepository productRepository,
+        IMapper mapper,
+        ILogger<GetAllProductsQueryHandler> logger)
+    {
+        _productRepository = productRepository;
+        _mapper = mapper;
+        _logger = logger;
+    }
+
     public async Task<Result<IReadOnlyList<ProductDto>>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Fetching all products");
-        var products = await productRepository.GetAllAsync(cancellationToken);
-        return Result<IReadOnlyList<ProductDto>>.Success(mapper.Map<IReadOnlyList<ProductDto>>(products));
+        try
+        {
+            _logger.LogInformation("Fetching all products - Page: {Page}, PageSize: {PageSize}",
+                request.PageNumber, request.PageSize);
+
+            var allProducts = await _productRepository.GetAllAsync(cancellationToken);
+            var products = allProducts.ToList();
+
+            // Apply filters
+            if (request.BusinessId.HasValue)
+            {
+                products = products.Where(p => p.BusinessId == request.BusinessId.Value).ToList();
+            }
+
+
+            if (request.IsActive.HasValue)
+            {
+                products = products.Where(p => p.IsActive == request.IsActive.Value).ToList();
+            }
+
+            if (request.MinPrice.HasValue)
+            {
+                products = products.Where(p => p.Price >= request.MinPrice.Value).ToList();
+            }
+
+            if (request.MaxPrice.HasValue)
+            {
+                products = products.Where(p => p.Price <= request.MaxPrice.Value).ToList();
+            }
+
+            // Apply pagination
+            var paginatedProducts = products
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToList();
+
+            var productDtos = _mapper.Map<IReadOnlyList<ProductDto>>(paginatedProducts);
+
+            return Result<IReadOnlyList<ProductDto>>.Success(productDtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching all products");
+            return Result<IReadOnlyList<ProductDto>>.Failure($"Failed to fetch products: {ex.Message}");
+        }
     }
 }
