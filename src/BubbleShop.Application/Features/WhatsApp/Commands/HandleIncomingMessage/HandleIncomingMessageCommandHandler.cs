@@ -13,31 +13,43 @@ public sealed class HandleIncomingMessageCommandHandler(
     IMediator mediator,
     IConversationRepository conversationRepository,
     IUnitOfWork unitOfWork,
+    ICustomerRepository customerRepository,
     IWhatsAppService whatsAppService)
     : IRequestHandler<HandleIncomingMessageCommand, Result<string>>
 {
+
     public async Task<Result<string>> Handle(HandleIncomingMessageCommand request, CancellationToken cancellationToken)
     {
+       
         var customerResult = await mediator.Send(new CreateOrUpdateCustomerCommand(request.FromNumber, "Customer", null, null), cancellationToken);
         if (customerResult.IsFailure)
         {
             return Result<string>.Failure(customerResult.Error ?? "Unable to upsert customer.");
         }
 
-        var customerId = customerResult.Value;
-        var existingConversation = await conversationRepository.GetByWhatsAppNumberAsync(request.FromNumber, cancellationToken);
-        var conversation = existingConversation ?? Conversation.Create(customerId, request.FromNumber);
+        var customer = customerResult.Value;
 
-        var history = conversation.MessageHistory;
+        if (customer is null)
+        {
+            return Result<string>.Failure("Customer not found.");
+        }
+        var existingConversation = await conversationRepository.GetByWhatsAppNumberAsync(request.FromNumber, cancellationToken);
+         var conversation = existingConversation ??
+    new Conversation(
+        request.BusinessId,
+        customer.Id,
+        customer.WhatsAppNumber,
+        customer.Name);
+        var history = conversation.ToChatHistory();
         history.Add(new ChatMessage { Role = ChatRole.User, Content = request.MessageText, Timestamp = DateTime.UtcNow });
 
-        var aiResult = await mediator.Send(new ProcessAgentTurnCommand(history, request.MessageText, customerId.ToString()), cancellationToken);
+        var aiResult = await mediator.Send(new ProcessAgentTurnCommand(history, request.MessageText, customer.Id.ToString()), cancellationToken);
         if (aiResult.IsFailure || aiResult.Value is null)
         {
             return Result<string>.Failure(aiResult.Error ?? "Unable to process message.");
         }
 
-        conversation.UpdateHistory(aiResult.Value.UpdatedHistory);
+        conversation.AddCustomerMessage(request.MessageText);
 
         if (existingConversation is null)
         {

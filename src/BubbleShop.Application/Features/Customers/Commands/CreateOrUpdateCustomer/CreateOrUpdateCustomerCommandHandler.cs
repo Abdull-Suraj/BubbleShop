@@ -1,12 +1,14 @@
 using BubbleShop.Application.Common.Interfaces;
 using BubbleShop.Application.Common.Models;
+using BubbleShop.Application.DTOs;
 using BubbleShop.Domain.Entities;
 using BubbleShop.Domain.Interfaces.Repositories;
 using MediatR;
 
 namespace BubbleShop.Application.Features.Customers.Commands.CreateOrUpdateCustomer;
 
-public sealed class CreateOrUpdateCustomerCommandHandler : IRequestHandler<CreateOrUpdateCustomerCommand, Result<Guid>>
+public sealed class CreateOrUpdateCustomerCommandHandler
+    : IRequestHandler<CreateOrUpdateCustomerCommand, Result<CustomerDto>>
 {
     private readonly ICustomerRepository _customerRepository;
     private readonly IUnitOfWork _unitOfWork;
@@ -19,7 +21,7 @@ public sealed class CreateOrUpdateCustomerCommandHandler : IRequestHandler<Creat
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<Guid>> Handle(CreateOrUpdateCustomerCommand request, CancellationToken cancellationToken)
+    public async Task<Result<CustomerDto>> Handle(CreateOrUpdateCustomerCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -29,13 +31,16 @@ public sealed class CreateOrUpdateCustomerCommandHandler : IRequestHandler<Creat
             if (customer is null)
             {
                 // Create new customer
-                customer = Customer.Create(
+                customer = new Customer(
                     whatsappNumber: request.WhatsAppNumber,
                     name: request.Name,
-                    email: request.Email,
-                    address: request.Address
+                    email: request.Email
                 );
 
+                if (!string.IsNullOrWhiteSpace(request.Address))
+                {
+                    customer.UpdateAddress(request.Address);
+                }
                 // Assign to business if BusinessId is provided
                 if (request.BusinessId.HasValue)
                 {
@@ -64,11 +69,28 @@ public sealed class CreateOrUpdateCustomerCommandHandler : IRequestHandler<Creat
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            return Result<Guid>.Success(customer.Id);
+            var customerDto = new CustomerDto
+            {
+                Id = customer.Id,
+                Name = customer.Name,
+                PhoneNumber = customer.PhoneNumber,
+                WhatsAppNumber = customer.WhatsAppNumber,
+                Email = customer.Email,
+                Address = customer.Address,
+                City = customer.City,
+                State = customer.State,
+                TotalOrders = customer.TotalOrders,
+                TotalSpent = customer.TotalSpent,
+                LastOrderDate = customer.LastOrderDate,
+                Status = customer.Status.ToString(),
+                CreatedAt = customer.CreatedAt
+            };
+
+            return Result<CustomerDto>.Success(customerDto);
         }
         catch (Exception ex)
         {
-            return Result<Guid>.Failure($"Failed to create or update customer: {ex.Message}");
+            return Result<CustomerDto>.Failure($"Failed to create or update customer: {ex.Message}");
         }
     }
 }

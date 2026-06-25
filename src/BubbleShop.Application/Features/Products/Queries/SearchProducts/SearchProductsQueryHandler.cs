@@ -27,8 +27,9 @@ public sealed class SearchProductsQueryHandler : IRequestHandler<SearchProductsQ
     {
         try
         {
-            _logger.LogInformation("Searching products with keyword: {Keyword}, Category: {Category}",
-                request.Keyword);
+            _logger.LogInformation(
+     "Searching products with keyword: {Keyword}",
+     request.Keyword);
 
             // Get all products (or search with keyword and category)
             var allProducts = await _productRepository.GetAllAsync(cancellationToken);

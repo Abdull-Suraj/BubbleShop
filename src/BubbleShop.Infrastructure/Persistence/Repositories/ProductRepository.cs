@@ -56,4 +56,14 @@ public sealed class ProductRepository(AppDbContext dbContext) : Repository<Produ
         => await DbContext.Products
             .Where(x => x.BusinessId == businessId && x.StockQuantity == 0 && !x.IsDeleted)
             .ToListAsync(cancellationToken);
+    public async Task<Product?> GetByNameAsync(string name, Guid businessId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return null;
+
+        return await _dbSet
+            .FirstOrDefaultAsync(p => p.Name.ToLower() == name.ToLower()
+                                   && p.BusinessId == businessId
+                                   && !p.IsDeleted, cancellationToken);
+    }
 }

@@ -14,4 +14,5 @@ public interface IProductRepository : IRepository<Product>
     Task<IReadOnlyList<Product>> GetByCategoryAsync(string category, Guid businessId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Product>> GetLowStockProductsAsync(Guid businessId, int threshold = 10, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Product>> GetOutOfStockProductsAsync(Guid businessId, CancellationToken cancellationToken = default);
+    Task<Product?> GetByNameAsync(string name, Guid businessId, CancellationToken cancellationToken = default);
 }

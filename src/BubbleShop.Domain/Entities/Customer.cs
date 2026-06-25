@@ -11,14 +11,19 @@ public sealed class Customer : BaseEntity
     {
     }
 
-    private Customer(Guid id, string whatsappNumber, string name, string? email, string? address, Guid? businessId = null)
+    public Customer( 
+        string whatsappNumber, 
+        string name, 
+        string? email =null, 
+         string ? phoneNumber = null,
+        Guid? businessId = null)
     {
-        Id = id;
+        Id = Guid.NewGuid();
         WhatsAppNumber = whatsappNumber;
         Name = name;
         Email = email;
-        Address = address;
         BusinessId = businessId;
+        PhoneNumber = phoneNumber ?? WhatsAppNumber;
         Status = CustomerStatus.Active;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = CreatedAt;
@@ -30,14 +35,13 @@ public sealed class Customer : BaseEntity
     // Properties
     //public Guid Id { get; private set; }
     public Guid? BusinessId { get; private set; }
+    public string PhoneNumber { get; private set; } = string.Empty;
     public string WhatsAppNumber { get; private set; } = string.Empty;
     public string Name { get; private set; } = string.Empty;
     public string? Email { get; private set; }
     public string? Address { get; private set; }
     public string? City { get; private set; }
     public string? State { get; private set; }
-    public string? Country { get; private set; }
-    public string? PostalCode { get; private set; }
     public CustomerStatus Status { get; private set; }
     public string Notes { get; private set; } = string.Empty;
     public int TotalOrders { get; private set; }
@@ -50,12 +54,12 @@ public sealed class Customer : BaseEntity
     public ICollection<Order> Orders { get; private set; } = [];
     public Business? Business { get; private set; }
 
-    // Factory Methods
-    public static Customer Create(string whatsappNumber, string name, string? email, string? address)
-        => new(Guid.NewGuid(), whatsappNumber, name, email, address);
+    //// Factory Methods
+    //public static Customer Create(Id, string whatsappNumber, string name, string? email)
+    //    => new(Guid.NewGuid(), whatsappNumber, name, email);
 
-    public static Customer Create(string whatsappNumber, string name, string? email, string? address, Guid businessId)
-        => new(Guid.NewGuid(), whatsappNumber, name, email, address, businessId);
+    //public static Customer Create(string whatsappNumber, string name, string? email,  Guid businessId)
+    //    => new(Guid.NewGuid(), whatsappNumber, name, email, businessId);
 
     // Update Methods
     public void Update(string name, string? email, string? address)
@@ -86,9 +90,7 @@ public sealed class Customer : BaseEntity
         Address = address;
         City = city ?? City;
         State = state ?? State;
-        Country = country ?? Country;
-        PostalCode = postalCode ?? PostalCode;
-        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     public void UpdateWhatsAppNumber(string whatsAppNumber)

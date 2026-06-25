@@ -1,9 +1,12 @@
 using BubbleShop.Application.AppServices;
 using BubbleShop.Application.Common.Behaviours;
 using BubbleShop.Application.Common.Interfaces;
+
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
+
 
 namespace BubbleShop.Application;
 
@@ -11,14 +14,35 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-   
+        // Register Application Services
         services.AddScoped<IAutomationService, AutomationService>();
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+        services.AddScoped<IAIIntentService, AIIntentService>();
+        services.AddScoped<ICommandFactory, CommandFactory>();
+        services.AddScoped<IMessageRouter, MessageRouter>();
+
+        // Register MediatR (CQRS)
+        services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
+
+            // Add pipeline behaviors
+            cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(LoggingBehaviour<,>));
+            cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
+            cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ExceptionHandlingBehaviour<,>));
+            cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(PerformanceBehaviour<,>));
+        });
+
+        // Register AutoMapper
         services.AddAutoMapper(typeof(DependencyInjection).Assembly);
+
+        // Register FluentValidation
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehaviour<,>));
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
-        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ExceptionHandlingBehaviour<,>));
+
+        // Register Pipeline Behaviors (Alternative way if not using AddBehavior)
+        // services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehaviour<,>));
+        // services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
+        // services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ExceptionHandlingBehaviour<,>));
+
         return services;
     }
 }

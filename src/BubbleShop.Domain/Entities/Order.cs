@@ -27,7 +27,7 @@ public sealed class Order : BaseEntity
         AddDomainEvent(new OrderPlacedEvent(this));
     }
 
-    public Guid Id { get; private set; }
+    
     public Guid BusinessId { get; private set; }  // ADD THIS
     public string OrderNumber { get; private set; } = string.Empty;
 
@@ -44,7 +44,7 @@ public sealed class Order : BaseEntity
     public decimal TaxAmount { get; private set; }
     public decimal DeliveryFee { get; private set; }
     public decimal TotalAmount { get; private set; }
-    public DateTime CreatedAt { get; private set; }
+ 
     public DateTime UpdatedAt { get; private set; }
     public DateTime? PaidAt { get; private set; }
     public DateTime? ConfirmedAt { get; private set; }

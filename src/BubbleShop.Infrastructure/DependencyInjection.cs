@@ -1,9 +1,6 @@
 using BubbleShop.Application.Common.Interfaces;
 using BubbleShop.Domain.Interfaces.Repositories;
 using BubbleShop.Infrastructure.Configuration;
-//using BubbleShop.Infrastructure.ExternalServices.AI;
-using BubbleShop.Infrastructure.ExternalServices.Delivery;
-using BubbleShop.Infrastructure.ExternalServices.Payment;
 using BubbleShop.Infrastructure.ExternalServices.WhatsApp;
 using BubbleShop.Infrastructure.Persistence;
 using BubbleShop.Infrastructure.Persistence.Repositories;
@@ -18,30 +15,39 @@ public static class InfrastructureServiceCollectionExtensions
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        // Configure Options
         services.Configure<WhatsAppOptions>(configuration.GetSection(WhatsAppOptions.SectionName));
-        services.Configure<AzureOpenAIOptions>(configuration.GetSection(AzureOpenAIOptions.SectionName));
+        // services.Configure<AzureOpenAIOptions>(configuration.GetSection(AzureOpenAIOptions.SectionName)); // Commented if not using Azure
         services.Configure<StripeOptions>(configuration.GetSection(StripeOptions.SectionName));
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.Configure<DeliveryOptions>(configuration.GetSection(DeliveryOptions.SectionName));
         services.Configure<EmailOptions>(configuration.GetSection("Email"));
-        services.AddScoped<IEmailService, EmailService>();
-        services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("BubbleShopConnection")));
 
-        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
+        // Register DbContext - Use DefaultConnection or BubbleShopConnection
+        services.AddDbContext<AppDbContext>(options =>
+            options.UseSqlServer(
+                configuration.GetConnectionString("DefaultConnection") ??
+                configuration.GetConnectionString("BubbleShopConnection"),
+                sqlOptions => sqlOptions.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
+
+        // Register UnitOfWork
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        // Register Repositories
+        services.AddScoped<IBusinessRepository, BusinessRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IConversationRepository, ConversationRepository>();
-
         services.AddScoped<IPaymentRepository, PaymentRepository>();
-
-        services.AddHttpClient<IWhatsAppService, WhatsAppService>();
-        //services.AddScoped<IPaymentService, StripePaymentService>();
-        services.AddScoped<IDeliveryService, DeliveryService>();
-        //services.AddScoped<IAIAgentService, AzureOpenAIAgentService>();
-        // Infrastructure/DependencyInjection.cs
         services.AddScoped<IAutomationRuleRepository, AutomationRuleRepository>();
+
+        // Register Services
+        services.AddHttpClient<IWhatsAppService, WhatsAppService>();
+        services.AddScoped<IEmailService, EmailService>();
+        // services.AddScoped<IPaymentService, StripePaymentService>();
+        // services.AddScoped<IDeliveryService, DeliveryService>();
+        // services.AddScoped<IAIAgentService, AzureOpenAIAgentService>();
 
         return services;
     }
