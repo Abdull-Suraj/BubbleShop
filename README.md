@@ -1,6 +1,6 @@
 # BubbleShop
 
-WhatsApp Business Sales Agent backend built with ASP.NET Core 8 Web API and Clean Architecture.
+WhatsApp Business Sales Agent backend built with ASP.NET Core 10 Web API and Clean Architecture.
 
 ## Prerequisites
 - .NET SDK 10
