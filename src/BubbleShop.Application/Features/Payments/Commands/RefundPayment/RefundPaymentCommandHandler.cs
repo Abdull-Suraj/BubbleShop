@@ -45,7 +45,7 @@ public sealed class RefundPaymentCommandHandler : IRequestHandler<RefundPaymentC
                 return Result<RefundResponseDto>.Failure($"Refund amount exceeds refundable amount. Maximum refundable: {refundableAmount}", "ValidationError");
 
             // Process refund
-            payment.Refund(request.Amount, request.Reason);
+            //payment.Refund(request.Amount, request.Reason);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Refund processed successfully for payment: {PaymentId}, Amount: {Amount}", request.PaymentId, request.Amount);

@@ -25,7 +25,7 @@ public sealed class Payment : BaseEntity
         CustomerId = customerId;
         Amount = amount;
         PaymentMethod = paymentMethod;
-   
+        Provider = provider ?? string.Empty;
         Status = PaymentStatus.Pending;
         PaymentType = PaymentType.Full;
         TransactionReference = string.Empty;
@@ -37,7 +37,7 @@ public sealed class Payment : BaseEntity
     }
 
     // Core Identifiers
-    public Guid Id { get; private set; }
+
     public Guid OrderId { get; private set; }
     public Guid BusinessId { get; private set; }
     public Guid? CustomerId { get; private set; }
@@ -77,7 +77,7 @@ public sealed class Payment : BaseEntity
     public string? GatewayResponse { get; private set; }
     public string? FailureReason { get; private set; }
 
-
+    public Dictionary<string, string> Metadata { get; private set; } = new();
 
     // Navigation Properties
     public Order? Order { get; private set; }
@@ -99,7 +99,7 @@ public sealed class Payment : BaseEntity
         if (BusinessEarnings < 0) BusinessEarnings = 0;
     }
 
-    // ADD THIS METHOD
+
     public void UpdateTransactionReference(string transactionReference)
     {
         TransactionReference = transactionReference;
@@ -135,41 +135,116 @@ public sealed class Payment : BaseEntity
         FailureReason = failureReason;
     }
 
-    public void Refund(decimal refundAmount, string? reason = null)
+    //public void Refund(decimal refundAmount, string? reason = null)
+    //{
+    //    if (Status != PaymentStatus.Successful)
+    //        throw new DomainException("Only successful payments can be refunded");
+
+    //    if (refundAmount <= 0)
+    //        throw new DomainException("Refund amount must be positive");
+
+    //    if (AmountRefunded + refundAmount > AmountPaid)
+    //        throw new DomainException("Refund amount exceeds paid amount");
+
+    //    AmountRefunded += refundAmount;
+
+    //    if (AmountRefunded >= AmountPaid)
+    //    {
+    //        Status = PaymentStatus.Refunded;
+    //        RefundedAt = DateTime.UtcNow;
+    //    }
+
+    //}
+
+    public bool IsExpired()
     {
-        if (Status != PaymentStatus.Successful)
-            throw new DomainException("Only successful payments can be refunded");
-
-        if (refundAmount <= 0)
-            throw new DomainException("Refund amount must be positive");
-
-        if (AmountRefunded + refundAmount > AmountPaid)
-            throw new DomainException("Refund amount exceeds paid amount");
-
-        AmountRefunded += refundAmount;
-
-        if (AmountRefunded >= AmountPaid)
-        {
-            Status = PaymentStatus.Refunded;
-            RefundedAt = DateTime.UtcNow;
-        }
-
+        return ExpiresAt.HasValue && DateTime.UtcNow > ExpiresAt.Value && Status == PaymentStatus.Pending;
     }
 
-
-
-    public void UpdateBillingAddress(string address)
+    public void ExtendExpiry(int hours)
     {
-        // Add billing address if needed
+        if (Status != PaymentStatus.Pending)
+            throw new DomainException("Only pending payments can be extended");
+
+        ExpiresAt = DateTime.UtcNow.AddHours(hours);
+        LastModifiedAt = DateTime.UtcNow;
     }
 
+    // Retry Failed Payment
+    //public void Retry()
+    //{
+    //    if (Status != PaymentStatus.Failed)
+    //        throw new DomainException("Only failed payments can be retried");
+
+    //    if (RetryCount >= 3)
+    //        throw new DomainException("Maximum retry attempts (3) reached");
+
+    //    Status = PaymentStatus.Pending;
+    //    FailureReason = null;
+    //    RetryCount++;
+    //    LastModifiedAt = DateTime.UtcNow;
+    //}
+
+    // Metadata Methods
     public void AddMetadata(string key, string value)
     {
-        // Add metadata if needed
+        if (string.IsNullOrWhiteSpace(key))
+            throw new DomainException("Metadata key cannot be empty");
+
+        Metadata[key] = value;
+        LastModifiedAt = DateTime.UtcNow;
     }
+
+    public void RemoveMetadata(string key)
+    {
+        if (Metadata.ContainsKey(key))
+        {
+            Metadata.Remove(key);
+            LastModifiedAt = DateTime.UtcNow;
+        }
+    }
+
+    public string? GetMetadata(string key)
+    {
+        return Metadata.GetValueOrDefault(key);
+    }
+    //public void UpdateBillingAddress(string address)
+    //{
+    //    if (Status != PaymentStatus.Pending && Status != PaymentStatus.Processing)
+    //        throw new DomainException("Billing address can only be updated for pending or processing payments");
+
+    //    BillingAddress = address;
+    //    LastModifiedAt = DateTime.UtcNow;
+    //}
+
+
 
     // Helper Methods
     public decimal GetRemainingBalance() => Amount - AmountPaid;
     public decimal GetRefundableAmount() => AmountPaid - AmountRefunded;
     public bool IsFullyPaid => AmountPaid >= Amount;
+    public string GetStatusDescription()
+    {
+        return Status switch
+        {
+            PaymentStatus.Pending => "Awaiting payment",
+            PaymentStatus.Processing => "Processing payment",
+            PaymentStatus.Successful => "Payment completed",
+            PaymentStatus.Failed => "Payment failed",
+            //PaymentStatus.Refunded => "Fully refunded",
+          _ => "Unknown status"
+        };
+    }
+
+    // Generate Transaction Reference
+    private static string GenerateTransactionReference()
+    {
+        return $"TXN-{DateTime.Now:yyyyMMddHHmmss}-{Guid.NewGuid():N}"[..20].ToUpper();
+    }
+
+    public override string ToString()
+    {
+        return $"Payment {TransactionReference} - {Status} - {Amount:C}";
+    }
 }
+
