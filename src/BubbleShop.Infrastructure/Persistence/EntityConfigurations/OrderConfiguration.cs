@@ -12,6 +12,6 @@ public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(x => x.TotalAmount).HasPrecision(18, 2);
         builder.HasMany(x => x.OrderItems).WithOne().HasForeignKey(x => x.OrderId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(x => x.Payment).WithOne().HasForeignKey<Payment>(x => x.OrderId).OnDelete(DeleteBehavior.Cascade);
-        builder.HasOne(x => x.Delivery).WithOne().HasForeignKey<Delivery>(x => x.OrderId).OnDelete(DeleteBehavior.Cascade);
+        //builder.HasOne(x => x.Delivery).WithOne().HasForeignKey<Delivery>(x => x.OrderId).OnDelete(DeleteBehavior.Cascade);
     }
 }

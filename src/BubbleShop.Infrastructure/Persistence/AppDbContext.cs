@@ -12,7 +12,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Payment> Payments => Set<Payment>();
-    public DbSet<Delivery> Deliveries => Set<Delivery>();
+    //public DbSet<Delivery> Deliveries => Set<Delivery>();
     public DbSet<Conversation> Conversations => Set<Conversation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

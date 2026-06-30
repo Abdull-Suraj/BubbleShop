@@ -54,7 +54,7 @@ public sealed class Order : BaseEntity
     public DateTime? CancelledAt { get; private set; }
     public ICollection<OrderItem> OrderItems { get; private set; } = [];
     public Payment? Payment { get; private set; }
-    public Delivery? Delivery { get; private set; }
+    //public Delivery? Delivery { get; private set; }
     public string? CancellationReason { get; private set; }
 
     // Factory Methods
@@ -120,7 +120,7 @@ public sealed class Order : BaseEntity
 
     public void AttachPayment(Payment payment) => Payment = payment;
 
-    public void AttachDelivery(Delivery delivery) => Delivery = delivery;
+    //public void AttachDelivery(Delivery delivery) => Delivery = delivery;
 
     public bool CanBeCancelled()
     {

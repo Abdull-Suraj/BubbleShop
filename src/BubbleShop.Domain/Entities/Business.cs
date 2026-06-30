@@ -41,21 +41,21 @@ public class Business : BaseEntity
 
     // ============ SETTINGS ============
     public BusinessSettings Settings { get; private set; } = new();
-    public BusinessDeliverySettings DeliverySettings { get; private set; } = new();
+    //public BusinessDeliverySettings DeliverySettings { get; private set; } = new();
 
     // ============ NAVIGATION PROPERTIES ============
     private readonly List<Product> _products = new();
     private readonly List<Customer> _customers = new();
     private readonly List<Order> _orders = new();
     private readonly List<Payment> _payments = new();
-    private readonly List<Delivery> _deliveries = new();
+    //private readonly List<Delivery> _deliveries = new();
     private readonly List<AutomationRule> _automationRules = new();
 
     public IReadOnlyCollection<Product> Products => _products.AsReadOnly();
     public IReadOnlyCollection<Customer> Customers => _customers.AsReadOnly();
     public IReadOnlyCollection<Order> Orders => _orders.AsReadOnly();
     public IReadOnlyCollection<Payment> Payments => _payments.AsReadOnly();
-    public IReadOnlyCollection<Delivery> Deliveries => _deliveries.AsReadOnly();
+    //public IReadOnlyCollection<Delivery> Deliveries => _deliveries.AsReadOnly();
     public IReadOnlyCollection<AutomationRule> AutomationRules => _automationRules.AsReadOnly();
 
     private Business() { }
@@ -85,7 +85,7 @@ public class Business : BaseEntity
         CommissionRate = 0.10m;
         Currency = "USD";
         Settings = new BusinessSettings();
-        DeliverySettings = new BusinessDeliverySettings();
+        //DeliverySettings = new BusinessDeliverySettings();
         CreatedAt = DateTime.UtcNow;
     }
 
@@ -355,11 +355,11 @@ public class Business : BaseEntity
     /// <summary>
     /// Update delivery settings
     /// </summary>
-    public void UpdateDeliverySettings(BusinessDeliverySettings deliverySettings)
-    {
-        DeliverySettings = deliverySettings ?? throw new ArgumentNullException(nameof(deliverySettings));
-        LastModifiedAt = DateTime.UtcNow;
-    }
+    //public void UpdateDeliverySettings(BusinessDeliverySettings deliverySettings)
+    //{
+    //    DeliverySettings = deliverySettings ?? throw new ArgumentNullException(nameof(deliverySettings));
+    //    LastModifiedAt = DateTime.UtcNow;
+    //}
 
     /// <summary>
     /// Update commission rate

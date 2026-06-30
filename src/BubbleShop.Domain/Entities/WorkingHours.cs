@@ -2,6 +2,7 @@
 
 public class WorkingHours
 {
+    public Guid Id { get; set; }
     public bool Is24Hours { get; set; } = true;
     public TimeOnly OpenTime { get; set; } = new TimeOnly(9, 0);
     public TimeOnly CloseTime { get; set; } = new TimeOnly(21, 0);

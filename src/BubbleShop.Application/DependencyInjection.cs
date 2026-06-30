@@ -19,6 +19,8 @@ public static class DependencyInjection
         services.AddScoped<IAIIntentService, AIIntentService>();
         services.AddScoped<ICommandFactory, CommandFactory>();
         services.AddScoped<IMessageRouter, MessageRouter>();
+        //services.AddScoped<IDeliveryService, DeliveryService>();
+        services.AddScoped<IAIAgentService, DummyAIAgentService>();
 
         // Register MediatR (CQRS)
         services.AddMediatR(cfg =>

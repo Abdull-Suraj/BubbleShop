@@ -14,7 +14,7 @@ public sealed class OrderRepository : Repository<Order>, IOrderRepository
         => await _dbSet
             .Include(x => x.OrderItems)
             .Include(x => x.Payment)
-            .Include(x => x.Delivery)
+            //.Include(x => x.Delivery)
             .Where(x => x.BusinessId == businessId && !x.IsDeleted)
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -23,7 +23,7 @@ public sealed class OrderRepository : Repository<Order>, IOrderRepository
         => await _dbSet
             .Include(x => x.OrderItems)
             .Include(x => x.Payment)
-            .Include(x => x.Delivery)
+            //.Include(x => x.Delivery)
             .Where(x => x.CustomerId == customerId && !x.IsDeleted)
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -32,13 +32,13 @@ public sealed class OrderRepository : Repository<Order>, IOrderRepository
         => await _dbSet
             .Include(x => x.OrderItems)
             .Include(x => x.Payment)
-            .Include(x => x.Delivery)
+            //.Include(x => x.Delivery)
             .FirstOrDefaultAsync(x => x.OrderNumber == orderNumber && !x.IsDeleted, cancellationToken);
 
     public async Task<Order?> GetWithItemsAsync(Guid orderId, CancellationToken cancellationToken = default)
         => await _dbSet
             .Include(x => x.OrderItems)
             .Include(x => x.Payment)
-            .Include(x => x.Delivery)
+            //.Include(x => x.Delivery)
             .FirstOrDefaultAsync(x => x.Id == orderId && !x.IsDeleted, cancellationToken);
 }
