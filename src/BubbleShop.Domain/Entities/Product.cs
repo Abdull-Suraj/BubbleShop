@@ -64,8 +64,8 @@ public sealed class Product : BaseEntity
 
     // Navigation Properties
     public Business Business { get; private set; } = null!;
-    private readonly List<OrderItem> _orderItems = new();
-    public IReadOnlyCollection<OrderItem> OrderItems => _orderItems.AsReadOnly();
+    private readonly List<OrderItem> _orderItems = [];
+    public IReadOnlyCollection<OrderItem> OrderItems => _orderItems;
 
     // Factory Methods
     public static Product Create(string name, string description, decimal price, int stockQuantity, string? imageUrl, string? category = null, Guid? businessId = null)

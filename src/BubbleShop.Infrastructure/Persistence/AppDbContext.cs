@@ -564,7 +564,8 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
             entity.Property(ar => ar.ActiveDays)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<List<DayOfWeek>>(v, (JsonSerializerOptions?)null) ?? new List<DayOfWeek>()
+                            v => JsonSerializer.Deserialize<HashSet<DayOfWeek>>(v, (JsonSerializerOptions?)null)
+             ?? new HashSet<DayOfWeek>()
                 )
                 .HasColumnType("nvarchar(max)");
 

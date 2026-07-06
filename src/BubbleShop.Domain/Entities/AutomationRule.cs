@@ -3,9 +3,7 @@ using BubbleShop.Domain.Enums;
 
 namespace BubbleShop.Domain.Entities;
 
-/// <summary>
-/// Automation rule for processing incoming messages
-/// </summary>
+
 public class AutomationRule : BaseEntity
 {
     // Core Properties
@@ -25,7 +23,7 @@ public class AutomationRule : BaseEntity
     // Optional: Time restrictions
     public TimeOnly? StartTime { get; private set; }
     public TimeOnly? EndTime { get; private set; }
-    public List<DayOfWeek> ActiveDays { get; private set; } = new();
+    public HashSet<DayOfWeek> ActiveDays { get; private set; } = new();
 
     // Usage tracking
     public int TimesTriggered { get; private set; }

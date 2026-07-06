@@ -33,7 +33,7 @@ public sealed class Customer : BaseEntity
     }
 
     // Properties
-    //public Guid Id { get; private set; }
+
     public Guid? BusinessId { get; private set; }
     public string PhoneNumber { get; private set; } = string.Empty;
     public string WhatsAppNumber { get; private set; } = string.Empty;
@@ -47,19 +47,16 @@ public sealed class Customer : BaseEntity
     public int TotalOrders { get; private set; }
     public decimal TotalSpent { get; private set; }
     public DateTimeOffset? LastOrderDate { get; private set; }
-    //public DateTimeOffset CreatedAt { get; private set; }
-    public DateTimeOffset UpdatedAt { get; private set; }
+   public DateTimeOffset UpdatedAt { get; private set; }
 
     // Navigation Properties
-    public ICollection<Order> Orders { get; private set; } = [];
     public Business? Business { get; private set; }
+    private readonly List<Conversation> _conversations = [];
 
-    //// Factory Methods
-    //public static Customer Create(Id, string whatsappNumber, string name, string? email)
-    //    => new(Guid.NewGuid(), whatsappNumber, name, email);
+    private readonly List<Order> _orders = [];
 
-    //public static Customer Create(string whatsappNumber, string name, string? email,  Guid businessId)
-    //    => new(Guid.NewGuid(), whatsappNumber, name, email, businessId);
+    public IReadOnlyCollection<Order> Orders => _orders;
+    public IReadOnlyCollection<Conversation> Conversations => _conversations;
 
     // Update Methods
     public void Update(string name, string? email, string? address)

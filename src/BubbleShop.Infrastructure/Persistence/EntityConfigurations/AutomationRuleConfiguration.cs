@@ -43,7 +43,8 @@ namespace BubbleShop.Infrastructure.Persistence.EntityConfigurations
             builder.Property(ar => ar.ActiveDays)
       .HasConversion(
           v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),  // Explicit null for optional parameter
-          v => JsonSerializer.Deserialize<List<DayOfWeek>>(v, (JsonSerializerOptions?)null) ?? new List<DayOfWeek>()
+                  v => JsonSerializer.Deserialize<HashSet<DayOfWeek>>(v, (JsonSerializerOptions?)null)
+             ?? new HashSet<DayOfWeek>()
       )
       .HasColumnType("nvarchar(max)");
 

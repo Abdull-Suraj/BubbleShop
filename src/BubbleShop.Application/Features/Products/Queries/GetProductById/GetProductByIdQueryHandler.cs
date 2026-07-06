@@ -1,4 +1,5 @@
-using AutoMapper;
+
+using BubbleShop.Application.Common.Mappings;
 using BubbleShop.Application.Common.Models;
 using BubbleShop.Application.DTOs;
 using BubbleShop.Application.Features.Products.Queries.GetAllProducts;
@@ -9,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BubbleShop.Application.Features.Products.Queries.GetProductById;
 
-public sealed class GetProductByIdQueryHandler(IProductRepository productRepository, IMapper mapper, ILogger<GetProductByIdQueryHandler> logger)
+public sealed class GetProductByIdQueryHandler(IProductRepository productRepository, ILogger<GetProductByIdQueryHandler> logger)
     : IRequestHandler<GetProductByIdQuery, Result<ProductDto>>
 {
     public async Task<Result<ProductDto>> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
@@ -26,6 +27,6 @@ public sealed class GetProductByIdQueryHandler(IProductRepository productReposit
             return Result<ProductDto>.Failure("Product not found.");
         }
 
-        return Result<ProductDto>.Success(mapper.Map<ProductDto>(product));
+        return Result<ProductDto>.Success(ProductMapper.ToDto(product));
     }
 }

@@ -1,32 +1,48 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="12.0.1" />
-    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
-    <PackageReference Include="BCrypt" Version="1.0.0" />
-    <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
-    <PackageReference Include="FluentValidation" Version="12.1.1" />
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
-    <PackageReference Include="MediatR" Version="14.1.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.11" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.3.11" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.11" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.9" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.9" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.9" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.19.1" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
-  </ItemGroup>
+	<ItemGroup>
+		<!-- MediatR -->
+		<PackageReference Include="MediatR" Version="14.2.0" />
 
-  <ItemGroup>
-    <ProjectReference Include="..\BubbleShop.Domain\BubbleShop.Domain.csproj" />
-  </ItemGroup>
+		<!-- FluentValidation -->
+		<PackageReference Include="FluentValidation" Version="12.1.1" />
+		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+
+
+
+		<!-- BCrypt - REMOVE the old BCrypt package, keep only BCrypt.Net-Next -->
+		<!-- <PackageReference Include="BCrypt" Version="1.0.0" /> -->
+		<!-- REMOVED - Vulnerable -->
+		<PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.3.11" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.11" />
+
+		<!-- Microsoft Extensions - All version 10.x -->
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.9" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.9" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.9" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
+
+		<!-- JWT -->
+		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.19.1" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="Riok.Mapperly" Version="4.3.1" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
+
+		<!-- Remove these - NOT needed for .NET 10/ASP.NET Core -->
+		<!-- <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.11" /> -->
+		<!-- <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.3.11" /> -->
+		<!-- <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.11" /> -->
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\BubbleShop.Domain\BubbleShop.Domain.csproj" />
+	</ItemGroup>
 
 </Project>

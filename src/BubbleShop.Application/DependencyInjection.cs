@@ -34,8 +34,7 @@ public static class DependencyInjection
             cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(PerformanceBehaviour<,>));
         });
 
-        // Register AutoMapper
-        services.AddAutoMapper(typeof(DependencyInjection).Assembly);
+
 
         // Register FluentValidation
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);

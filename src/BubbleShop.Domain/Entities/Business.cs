@@ -8,61 +8,54 @@ namespace BubbleShop.Domain.Entities;
 
 public class Business : BaseEntity
 {
-    // ============ BASIC INFORMATION ============
+
     public string BusinessName { get; private set; } = string.Empty;
     public string LegalName { get; private set; } = string.Empty;
     public string RegistrationNumber { get; private set; } = string.Empty;
     public string TaxId { get; private set; } = string.Empty;
 
-    // ============ CONTACT INFORMATION ============
     public string Email { get; private set; } = string.Empty;
     public string PhoneNumber { get; private set; } = string.Empty;
     public string WhatsAppNumber { get; private set; } = string.Empty;
 
-    // ============ ADDRESS ============
+   
     public string Address { get; private set; } = string.Empty;
     public string City { get; private set; } = string.Empty;
     public string State { get; private set; } = string.Empty;
     public string Country { get; private set; } = string.Empty;
     public string PostalCode { get; private set; } = string.Empty;
 
-    // ============ AUTHENTICATION ============
     public string PasswordHash { get; private set; } = string.Empty;
 
-    // ============ BUSINESS STATUS ============
     public BusinessStatus Status { get; private set; }
     public bool IsVerified { get; private set; }
     public DateTime? VerifiedAt { get; private set; }
 
-    // ============ FINANCIAL ============
+
     public decimal WalletBalance { get; private set; }
     public string Currency { get; private set; } = "USD";
     public decimal CommissionRate { get; private set; } = 0.10m; // 10% platform commission
 
-    // ============ SETTINGS ============
     public BusinessSettings Settings { get; private set; } = new();
-    //public BusinessDeliverySettings DeliverySettings { get; private set; } = new();
 
-    // ============ NAVIGATION PROPERTIES ============
-    private readonly List<Product> _products = new();
-    private readonly List<Customer> _customers = new();
-    private readonly List<Order> _orders = new();
-    private readonly List<Payment> _payments = new();
-    //private readonly List<Delivery> _deliveries = new();
-    private readonly List<AutomationRule> _automationRules = new();
+    private readonly List<Product> _products = [];
+    private readonly List<Customer> _customers = [];
+    private readonly List<Order> _orders = [];
+    private readonly List<Payment> _payments = [];
+    private readonly List<AutomationRule> _automationRules = [];
+    private readonly List<Conversation> _conversations = [];
 
-    public IReadOnlyCollection<Product> Products => _products.AsReadOnly();
-    public IReadOnlyCollection<Customer> Customers => _customers.AsReadOnly();
-    public IReadOnlyCollection<Order> Orders => _orders.AsReadOnly();
-    public IReadOnlyCollection<Payment> Payments => _payments.AsReadOnly();
-    //public IReadOnlyCollection<Delivery> Deliveries => _deliveries.AsReadOnly();
-    public IReadOnlyCollection<AutomationRule> AutomationRules => _automationRules.AsReadOnly();
+    public IReadOnlyCollection<Conversation> Conversations
+        => _conversations;
+    public IReadOnlyCollection<Product> Products => _products;
+    public IReadOnlyCollection<Customer> Customers => _customers;
+    public IReadOnlyCollection<Order> Orders => _orders;
+    public IReadOnlyCollection<Payment> Payments => _payments;
+   public IReadOnlyCollection<AutomationRule> AutomationRules => _automationRules;
 
     private Business() { }
 
-    /// <summary>
-    /// Main constructor for creating a new business
-    /// </summary>
+
     public Business(
         string businessName,
         string email,
@@ -91,9 +84,7 @@ public class Business : BaseEntity
 
     // ============ UPDATE METHODS ============
 
-    /// <summary>
-    /// Update business profile information
-    /// </summary>
+
     public void UpdateProfile(
         string businessName,
         string email,
@@ -135,9 +126,7 @@ public class Business : BaseEntity
         LastModifiedAt = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Update business name
-    /// </summary>
+
     public void UpdateBusinessName(string businessName)
     {
         if (string.IsNullOrWhiteSpace(businessName))
@@ -147,9 +136,7 @@ public class Business : BaseEntity
         LastModifiedAt = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Update email address
-    /// </summary>
+
     public void UpdateEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email))
@@ -159,9 +146,7 @@ public class Business : BaseEntity
         LastModifiedAt = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Update WhatsApp number
-    /// </summary>
+
     public void UpdateWhatsAppNumber(string whatsAppNumber)
     {
         if (string.IsNullOrWhiteSpace(whatsAppNumber))
@@ -171,9 +156,7 @@ public class Business : BaseEntity
         LastModifiedAt = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Update phone number
-    /// </summary>
+
     public void UpdatePhoneNumber(string phoneNumber)
     {
         if (string.IsNullOrWhiteSpace(phoneNumber))
@@ -183,9 +166,6 @@ public class Business : BaseEntity
         LastModifiedAt = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Update address
-    /// </summary>
     public void UpdateAddress(string address, string? city = null, string? state = null, string? country = null, string? postalCode = null)
     {
         if (!string.IsNullOrEmpty(address))
@@ -206,9 +186,6 @@ public class Business : BaseEntity
         LastModifiedAt = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Update legal name
-    /// </summary>
     public void UpdateLegalName(string legalName)
     {
         if (!string.IsNullOrEmpty(legalName))
@@ -216,9 +193,7 @@ public class Business : BaseEntity
         LastModifiedAt = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Update registration number
-    /// </summary>
+
     public void UpdateRegistrationNumber(string registrationNumber)
     {
         if (!string.IsNullOrEmpty(registrationNumber))
@@ -226,9 +201,7 @@ public class Business : BaseEntity
         LastModifiedAt = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Update tax ID
-    /// </summary>
+
     public void UpdateTaxId(string taxId)
     {
         if (!string.IsNullOrEmpty(taxId))
@@ -238,9 +211,7 @@ public class Business : BaseEntity
 
     // ============ PASSWORD METHODS ============
 
-    /// <summary>
-    /// Update password hash
-    /// </summary>
+
     public void UpdatePassword(string passwordHash)
     {
         if (string.IsNullOrWhiteSpace(passwordHash))
@@ -250,9 +221,6 @@ public class Business : BaseEntity
         LastModifiedAt = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Verify password
-    /// </summary>
     public bool VerifyPassword(string password, Func<string, string> hashProvider)
     {
         if (string.IsNullOrWhiteSpace(password))
@@ -264,9 +232,6 @@ public class Business : BaseEntity
 
     // ============ STATUS METHODS ============
 
-    /// <summary>
-    /// Verify the business
-    /// </summary>
     public void Verify()
     {
         Status = BusinessStatus.Active;
@@ -277,9 +242,7 @@ public class Business : BaseEntity
         AddDomainEvent(new BusinessVerifiedEvent(Id, BusinessName));
     }
 
-    /// <summary>
-    /// Suspend the business
-    /// </summary>
+
     public void Suspend()
     {
         Status = BusinessStatus.Suspended;
@@ -288,9 +251,6 @@ public class Business : BaseEntity
         AddDomainEvent(new BusinessSuspendedEvent(Id, BusinessName));
     }
 
-    /// <summary>
-    /// Activate the business
-    /// </summary>
     public void Activate()
     {
         Status = BusinessStatus.Active;
@@ -299,20 +259,13 @@ public class Business : BaseEntity
         AddDomainEvent(new BusinessActivatedEvent(Id, BusinessName));
     }
 
-    /// <summary>
-    /// Ban the business
-    /// </summary>
+  
     public void Ban()
     {
         Status = BusinessStatus.Banned;
         LastModifiedAt = DateTime.UtcNow;
     }
 
-    // ============ WALLET METHODS ============
-
-    /// <summary>
-    /// Add funds to wallet
-    /// </summary>
     public void AddToWallet(decimal amount, string? description = null)
     {
         if (amount <= 0)
@@ -324,9 +277,7 @@ public class Business : BaseEntity
         AddDomainEvent(new WalletCreditedEvent(Id, amount, WalletBalance, description));
     }
 
-    /// <summary>
-    /// Deduct funds from wallet
-    /// </summary>
+
     public void DeductFromWallet(decimal amount, string? description = null)
     {
         if (amount <= 0)
@@ -341,29 +292,13 @@ public class Business : BaseEntity
         AddDomainEvent(new WalletDebitedEvent(Id, amount, WalletBalance, description));
     }
 
-    // ============ SETTINGS METHODS ============
-
-    /// <summary>
-    /// Update business settings
-    /// </summary>
     public void UpdateSettings(BusinessSettings settings)
     {
         Settings = settings ?? throw new ArgumentNullException(nameof(settings));
         LastModifiedAt = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Update delivery settings
-    /// </summary>
-    //public void UpdateDeliverySettings(BusinessDeliverySettings deliverySettings)
-    //{
-    //    DeliverySettings = deliverySettings ?? throw new ArgumentNullException(nameof(deliverySettings));
-    //    LastModifiedAt = DateTime.UtcNow;
-    //}
 
-    /// <summary>
-    /// Update commission rate
-    /// </summary>
     public void UpdateCommissionRate(decimal rate)
     {
         if (rate < 0 || rate > 100)
@@ -373,9 +308,7 @@ public class Business : BaseEntity
         LastModifiedAt = DateTime.UtcNow;
     }
 
-    /// <summary>
-    /// Update currency
-    /// </summary>
+
     public void UpdateCurrency(string currency)
     {
         if (string.IsNullOrWhiteSpace(currency))
@@ -385,24 +318,14 @@ public class Business : BaseEntity
         LastModifiedAt = DateTime.UtcNow;
     }
 
-    // ============ BUSINESS METHODS ============
-
-    /// <summary>
-    /// Check if business can accept orders
-    /// </summary>
     public bool CanAcceptOrders => Status == BusinessStatus.Active && IsVerified;
 
-    /// <summary>
-    /// Check if business is active
-    /// </summary>
+
     public bool IsActive => Status == BusinessStatus.Active;
 
-    /// <summary>
-    /// Get business display name
-    /// </summary>
+
     public string DisplayName => !string.IsNullOrEmpty(LegalName) ? LegalName : BusinessName;
 
-    // ============ OVERRIDES ============
 
     public override string ToString()
     {

@@ -1,5 +1,5 @@
-// Application/Features/Products/Queries/GetAllProducts/GetAllProductsQueryHandler.cs
-using AutoMapper;
+
+using BubbleShop.Application.Common.Mappings;
 using BubbleShop.Application.Common.Models;
 using BubbleShop.Application.DTOs;
 using BubbleShop.Domain.Interfaces.Repositories;
@@ -11,16 +11,16 @@ namespace BubbleShop.Application.Features.Products.Queries.GetAllProducts;
 public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, Result<IReadOnlyList<ProductDto>>>
 {
     private readonly IProductRepository _productRepository;
-    private readonly IMapper _mapper;
+
     private readonly ILogger<GetAllProductsQueryHandler> _logger;
 
     public GetAllProductsQueryHandler(
         IProductRepository productRepository,
-        IMapper mapper,
+
         ILogger<GetAllProductsQueryHandler> logger)
     {
         _productRepository = productRepository;
-        _mapper = mapper;
+  
         _logger = logger;
     }
 
@@ -62,7 +62,7 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, R
                 .Take(request.PageSize)
                 .ToList();
 
-            var productDtos = _mapper.Map<IReadOnlyList<ProductDto>>(paginatedProducts);
+            var productDtos = ProductMapper.ToDtoList(paginatedProducts);
 
             return Result<IReadOnlyList<ProductDto>>.Success(productDtos);
         }

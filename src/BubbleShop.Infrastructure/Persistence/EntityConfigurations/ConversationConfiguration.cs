@@ -21,5 +21,15 @@ public sealed class ConversationConfiguration : IEntityTypeConfiguration<Convers
             .WithOne()
             .HasForeignKey("ConversationId")
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(c => c.Customer)
+            .WithMany(cu => cu.Conversations)
+            .HasForeignKey(c => c.CustomerId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        builder.HasOne(c => c.Business)
+            .WithMany(b => b.Conversations)
+            .HasForeignKey(c => c.BusinessId)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

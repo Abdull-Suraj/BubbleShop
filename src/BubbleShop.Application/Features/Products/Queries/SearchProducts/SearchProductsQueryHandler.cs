@@ -1,4 +1,5 @@
-using AutoMapper;
+
+using BubbleShop.Application.Common.Mappings;
 using BubbleShop.Application.Common.Models;
 using BubbleShop.Application.DTOs;
 using BubbleShop.Domain.Interfaces.Repositories;
@@ -10,16 +11,16 @@ namespace BubbleShop.Application.Features.Products.Queries.SearchProducts;
 public sealed class SearchProductsQueryHandler : IRequestHandler<SearchProductsQuery, Result<PagedResult<ProductDto>>>
 {
     private readonly IProductRepository _productRepository;
-    private readonly IMapper _mapper;
+
     private readonly ILogger<SearchProductsQueryHandler> _logger;
 
     public SearchProductsQueryHandler(
         IProductRepository productRepository,
-        IMapper mapper,
+
         ILogger<SearchProductsQueryHandler> logger)
     {
         _productRepository = productRepository;
-        _mapper = mapper;
+
         _logger = logger;
     }
 
@@ -82,7 +83,7 @@ public sealed class SearchProductsQueryHandler : IRequestHandler<SearchProductsQ
                 .Take(request.PageSize)
                 .ToList();
 
-            var productDtos = _mapper.Map<IReadOnlyList<ProductDto>>(paginatedProducts);
+            var productDtos = ProductMapper.ToDtoList(paginatedProducts);
 
             var result = new PagedResult<ProductDto>
             {
