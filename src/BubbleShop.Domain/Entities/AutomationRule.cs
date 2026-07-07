@@ -54,7 +54,7 @@ public class AutomationRule : BaseEntity
         Priority = priority;
         IsActive = true;
         TimesTriggered = 0;
-        ActiveDays = new List<DayOfWeek>();
+        ActiveDays = new HashSet<DayOfWeek>();
         CreatedAt = DateTime.UtcNow;
     }
 
@@ -156,9 +156,9 @@ public class AutomationRule : BaseEntity
         LastModifiedAt = DateTime.UtcNow;
     }
 
-    public void SetActiveDays(List<DayOfWeek> days)
+    public void SetActiveDays(HashSet<DayOfWeek> days)
     {
-        ActiveDays = days ?? new List<DayOfWeek>();
+        ActiveDays = days ?? new HashSet<DayOfWeek>();
         LastModifiedAt = DateTime.UtcNow;
     }
 

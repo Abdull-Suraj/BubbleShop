@@ -66,18 +66,18 @@ namespace BubbleShop.Infrastructure.Migrations
                     Email = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     WhatsAppNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Address = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    City = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    State = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Country = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PostalCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
+                    City = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    State = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Country = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    PostalCode = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     IsVerified = table.Column<bool>(type: "bit", nullable: false),
                     VerifiedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     WalletBalance = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    Currency = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CommissionRate = table.Column<decimal>(type: "decimal(5,2)", precision: 5, scale: 2, nullable: false),
+                    Currency = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    CommissionRate = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     SettingsId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
                     LastModifiedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
@@ -178,7 +178,6 @@ namespace BubbleShop.Infrastructure.Migrations
                     Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     LastMessageAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UnreadCount = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                    Messages = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     LastModifiedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false)
@@ -196,8 +195,7 @@ namespace BubbleShop.Infrastructure.Migrations
                         name: "FK_Conversations_Customers_CustomerId",
                         column: x => x.CustomerId,
                         principalTable: "Customers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -261,7 +259,7 @@ namespace BubbleShop.Infrastructure.Migrations
                     Action = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     Priority = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                    MatchType = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false, defaultValue: "Contains"),
+                    MatchType = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     StartTime = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     EndTime = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ActiveDays = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -284,8 +282,32 @@ namespace BubbleShop.Infrastructure.Migrations
                         name: "FK_AutomationRules_Products_AssociatedProductId",
                         column: x => x.AssociatedProductId,
                         principalTable: "Products",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ConversationMessages",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ConversationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Message = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false),
+                    Sender = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    IsFromCustomer = table.Column<bool>(type: "bit", nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LastModifiedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ConversationMessages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ConversationMessages_Conversations_ConversationId",
+                        column: x => x.ConversationId,
+                        principalTable: "Conversations",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -445,6 +467,11 @@ namespace BubbleShop.Infrastructure.Migrations
                 column: "WorkingHoursId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ConversationMessages_ConversationId",
+                table: "ConversationMessages",
+                column: "ConversationId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Conversations_BusinessId_WhatsAppNumber",
                 table: "Conversations",
                 columns: new[] { "BusinessId", "WhatsAppNumber" },
@@ -554,13 +581,16 @@ namespace BubbleShop.Infrastructure.Migrations
                 name: "AutomationRules");
 
             migrationBuilder.DropTable(
-                name: "Conversations");
+                name: "ConversationMessages");
 
             migrationBuilder.DropTable(
                 name: "OrderItemOptions");
 
             migrationBuilder.DropTable(
                 name: "Payments");
+
+            migrationBuilder.DropTable(
+                name: "Conversations");
 
             migrationBuilder.DropTable(
                 name: "OrderItems");

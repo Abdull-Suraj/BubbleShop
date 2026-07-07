@@ -1,17 +1,24 @@
 using BubbleShop.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+
 
 namespace BubbleShop.Infrastructure.Persistence.EntityConfigurations;
 
 public sealed class OrderConfiguration : IEntityTypeConfiguration<Order>
 {
+
     public void Configure(EntityTypeBuilder<Order> builder)
     {
+       
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.TotalAmount)
             .HasPrecision(18, 2);
+
+
 
         builder.HasMany(x => x.OrderItems)
             .WithOne()

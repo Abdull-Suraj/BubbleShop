@@ -21,6 +21,7 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
     public DbSet<Payment> Payments => Set<Payment>();
     //public DbSet<Delivery> Deliveries => Set<Delivery>();
     public DbSet<Conversation> Conversations => Set<Conversation>();
+    public DbSet<ConversationMessage> ConversationMessages => Set<ConversationMessage>();
     public DbSet<Business> Businesses => Set<Business>();
     public DbSet<AutomationRule> AutomationRules => Set<AutomationRule>();
 
@@ -46,18 +47,82 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
             entity.Property(b => b.WhatsAppNumber)
                 .IsRequired()
                 .HasMaxLength(20);
+            entity.Property(x => x.Address)
+         .HasMaxLength(300);
+
+            entity.Property(x => x.City)
+                .HasMaxLength(100);
+
+            entity.Property(x => x.State)
+                .HasMaxLength(100);
+
+            entity.Property(x => x.Country)
+                .HasMaxLength(100);
+
+            entity.Property(x => x.PostalCode)
+                .HasMaxLength(30);
+
+            entity.Property(x => x.Currency)
+                .HasMaxLength(10);
+
 
             entity.Property(b => b.WalletBalance)
                 .HasPrecision(18, 2);
 
             entity.Property(b => b.CommissionRate)
-                .HasPrecision(5, 2);
+                .HasPrecision(18, 2);
 
             entity.Property(b => b.CreatedAt)
                 .HasDefaultValueSql("GETUTCDATE()");
 
             entity.Property(b => b.LastModifiedAt)
                 .IsRequired(false);
+            entity.HasMany(b => b.Customers)
+   .WithOne(c => c.Business)
+   .HasForeignKey(c => c.BusinessId)
+   .OnDelete(DeleteBehavior.NoAction);
+
+            entity.Navigation(b => b.Customers)
+        .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            entity.HasMany(b => b.Products)
+                .WithOne(p => p.Business)
+                .HasForeignKey(p => p.BusinessId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.Navigation(b => b.Products)
+        .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            entity.HasMany(b => b.Orders)
+                .WithOne(o => o.Business)
+                .HasForeignKey(o => o.BusinessId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.Navigation(b => b.Orders)
+        .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            entity.HasMany(b => b.Payments)
+                .WithOne(p => p.Business)
+                .HasForeignKey(p => p.BusinessId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.Navigation(b => b.Payments)
+        .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            entity.HasMany(b => b.Conversations)
+                .WithOne(c => c.Business)
+                .HasForeignKey(c => c.BusinessId)
+                .OnDelete(DeleteBehavior.NoAction);
+            entity.Navigation(b => b.Conversations)
+        .UsePropertyAccessMode(PropertyAccessMode.Field);
+
+            entity.HasMany(b => b.AutomationRules)
+                .WithOne(a => a.Business)
+                .HasForeignKey(a => a.BusinessId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.Navigation(b => b.AutomationRules)
+        .UsePropertyAccessMode(PropertyAccessMode.Field);
         });
 
         // Product Configuration
@@ -95,9 +160,14 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
             entity.Property(p => p.ThumbnailUrl)
                 .HasMaxLength(500);
 
-            //entity.Property(p => p.Status)
-            //    .HasConversion<string>()
-            //    .HasMaxLength(50);
+            var stringListComparer = new ValueComparer<List<string>>(
+                (a, b) => a!.SequenceEqual(b!),
+
+                c => c.Aggregate(0, (hash, item) =>
+                    HashCode.Combine(hash, item.GetHashCode())),
+
+                c => c.ToList()
+            );
 
             entity.Property(p => p.IsDigital)
                 .HasDefaultValue(false);
@@ -105,49 +175,20 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
             entity.Property(p => p.LowStockThreshold)
                 .HasDefaultValue(10);
 
-            // Store Tags as JSON
             entity.Property(p => p.Tags)
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                )
-                .HasColumnType("nvarchar(max)");
+         .HasConversion(
+             v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+             v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new())
+         .Metadata.SetValueComparer(stringListComparer);
 
             // Store Images as JSON
             entity.Property(p => p.Images)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>()
-                )
-                .HasColumnType("nvarchar(max)");
+                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new())
+                .Metadata.SetValueComparer(stringListComparer);
 
-            // OwnsOne for Weight
-            //entity.OwnsOne(p => p.Weight, weight =>
-            //{
-            //    weight.Property(w => w.Value)
-            //        .HasColumnName("WeightValue")
-            //        .HasPrecision(18, 2);
-            //    weight.Property(w => w.Unit)
-            //        .HasColumnName("WeightUnit")
-            //        .HasMaxLength(10);
-            //});
 
-            // OwnsOne for Dimensions
-            //entity.OwnsOne(p => p.Dimensions, dimensions =>
-            //{
-            //    dimensions.Property(d => d.Length)
-            //        .HasColumnName("Length")
-            //        .HasPrecision(18, 2);
-            //    dimensions.Property(d => d.Width)
-            //        .HasColumnName("Width")
-            //        .HasPrecision(18, 2);
-            //    dimensions.Property(d => d.Height)
-            //        .HasColumnName("Height")
-            //        .HasPrecision(18, 2);
-            //    dimensions.Property(d => d.Unit)
-            //        .HasColumnName("DimensionUnit")
-            //        .HasMaxLength(10);
-            //});
 
             entity.HasOne(p => p.Business)
                 .WithMany(b => b.Products)
@@ -255,15 +296,20 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
 
             entity.Property(o => o.CancellationReason)
                 .HasMaxLength(500);
+            var dictionaryComparer = new ValueComparer<Dictionary<string, string>>(
+                (a, b) => JsonSerializer.Serialize(a, (JsonSerializerOptions?)null)
+                        == JsonSerializer.Serialize(b, (JsonSerializerOptions?)null),
 
-            // Store Metadata as JSON
+                d => JsonSerializer.Serialize(d, (JsonSerializerOptions?)null).GetHashCode(),
+
+                d => d.ToDictionary(x => x.Key, x => x.Value)
+            );
             entity.Property(o => o.Metadata)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<Dictionary<string, string>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<string, string>()
-                )
-                .HasColumnType("nvarchar(max)");
-
+                    v => JsonSerializer.Deserialize<Dictionary<string, string>>(v, (JsonSerializerOptions?)null)
+                         ?? new())
+                .Metadata.SetValueComparer(dictionaryComparer);
             // Relationships
             entity.HasMany(o => o.OrderItems)
                 .WithOne(oi => oi.Order)
@@ -406,13 +452,20 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
             entity.Property(p => p.GatewayResponse)
                 .HasColumnType("nvarchar(max)");
 
-            // Store Metadata as JSON
-            entity.Property(p => p.Metadata)
+            var dictionaryComparer = new ValueComparer<Dictionary<string, string>>(
+                (a, b) => JsonSerializer.Serialize(a, (JsonSerializerOptions?)null)
+                        == JsonSerializer.Serialize(b, (JsonSerializerOptions?)null),
+
+                d => JsonSerializer.Serialize(d, (JsonSerializerOptions?)null).GetHashCode(),
+
+                d => d.ToDictionary(x => x.Key, x => x.Value)
+            );
+            entity.Property(o => o.Metadata)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<Dictionary<string, string>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<string, string>()
-                )
-                .HasColumnType("nvarchar(max)");
+                    v => JsonSerializer.Deserialize<Dictionary<string, string>>(v, (JsonSerializerOptions?)null)
+                         ?? new())
+                .Metadata.SetValueComparer(dictionaryComparer);
 
             entity.HasOne(p => p.Order)
                 .WithOne(o => o.Payment)
@@ -500,25 +553,38 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
             entity.Property(c => c.UnreadCount)
                 .HasDefaultValue(0);
 
-            // Store Messages as JSON
-            var messageComparer = new ValueComparer<ICollection<ConversationMessage>>(
-                (c1, c2) => c1 != null && c2 != null && c1.SequenceEqual(c2),
-                c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                c => c.ToList());
 
-            // Use HasValueComparer with the comparer
-            entity.Property(c => c.Messages)
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<ICollection<ConversationMessage>>(v, (JsonSerializerOptions?)null) ?? new List<ConversationMessage>()
-                )
-                .HasColumnType("nvarchar(max)");
-                //.HasValueComparer(messageComparer);
+
+            entity.HasOne(c => c.Customer)
+                .WithMany(cu => cu.Conversations)
+                .HasForeignKey(c => c.CustomerId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             entity.HasOne(c => c.Business)
-                .WithMany()
+                .WithMany(b=>b.Conversations)
                 .HasForeignKey(c => c.BusinessId)
                 .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(c => c.Messages)
+    .WithOne(m => m.Conversation)
+    .HasForeignKey(m => m.ConversationId)
+    .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ConversationMessage Configuration
+        modelBuilder.Entity<ConversationMessage>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Message)
+                .HasMaxLength(4000)
+                .IsRequired();
+
+            entity.Property(x => x.Sender)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(x => x.Timestamp)
+                .IsRequired();
         });
 
         // AutomationRule Configuration
@@ -543,8 +609,8 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
 
             entity.Property(ar => ar.MatchType)
                 .HasConversion<string>()
-                .HasMaxLength(20)
-                .HasDefaultValue(Domain.Entities.MatchType.Contains);
+                .HasMaxLength(20);
+               
 
             entity.Property(ar => ar.IsActive)
                 .HasDefaultValue(true);
@@ -560,15 +626,21 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
         (c1, c2) => c1 != null && c2 != null && c1.SequenceEqual(c2),
         c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
         c => c.ToList());
+            var activeDaysComparer = new ValueComparer<HashSet<DayOfWeek>>(
+    (a, b) =>
+        a!.SetEquals(b!),
 
+    c =>
+        c.Aggregate(0, (hash, item) => HashCode.Combine(hash, item.GetHashCode())),
+
+    c => new HashSet<DayOfWeek>(c)
+);
             entity.Property(ar => ar.ActiveDays)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                            v => JsonSerializer.Deserialize<HashSet<DayOfWeek>>(v, (JsonSerializerOptions?)null)
-             ?? new HashSet<DayOfWeek>()
-                )
-                .HasColumnType("nvarchar(max)");
-
+                    v => JsonSerializer.Deserialize<HashSet<DayOfWeek>>(v, (JsonSerializerOptions?)null)
+                         ?? new HashSet<DayOfWeek>())
+                .Metadata.SetValueComparer(activeDaysComparer);
 
             // Store StartTime and EndTime as string
             entity.Property(ar => ar.StartTime)
@@ -591,7 +663,7 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
             entity.HasOne(ar => ar.AssociatedProduct)
                 .WithMany()
                 .HasForeignKey(ar => ar.AssociatedProductId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.NoAction);
         });
     }
 

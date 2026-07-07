@@ -70,10 +70,8 @@ namespace BubbleShop.Infrastructure.Migrations
 
                     b.Property<string>("MatchType")
                         .IsRequired()
-                        .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("Contains");
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<int>("Priority")
                         .ValueGeneratedOnAdd()
@@ -115,7 +113,8 @@ namespace BubbleShop.Infrastructure.Migrations
 
                     b.Property<string>("Address")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<string>("BusinessName")
                         .IsRequired()
@@ -124,15 +123,17 @@ namespace BubbleShop.Infrastructure.Migrations
 
                     b.Property<string>("City")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("CommissionRate")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Country")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -141,7 +142,8 @@ namespace BubbleShop.Infrastructure.Migrations
 
                     b.Property<string>("Currency")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -171,7 +173,8 @@ namespace BubbleShop.Infrastructure.Migrations
 
                     b.Property<string>("PostalCode")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("RegistrationNumber")
                         .IsRequired()
@@ -182,7 +185,8 @@ namespace BubbleShop.Infrastructure.Migrations
 
                     b.Property<string>("State")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -294,10 +298,6 @@ namespace BubbleShop.Infrastructure.Migrations
 
                     b.Property<DateTime?>("LastModifiedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Messages")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -854,12 +854,53 @@ namespace BubbleShop.Infrastructure.Migrations
                     b.ToTable("WorkingHours");
                 });
 
+            modelBuilder.Entity("ConversationMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsFromCustomer")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("Sender")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConversationId");
+
+                    b.ToTable("ConversationMessages");
+                });
+
             modelBuilder.Entity("BubbleShop.Domain.Entities.AutomationRule", b =>
                 {
                     b.HasOne("BubbleShop.Domain.Entities.Product", "AssociatedProduct")
                         .WithMany()
                         .HasForeignKey("AssociatedProductId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("BubbleShop.Domain.Entities.Business", "Business")
                         .WithMany("AutomationRules")
@@ -897,15 +938,15 @@ namespace BubbleShop.Infrastructure.Migrations
             modelBuilder.Entity("BubbleShop.Domain.Entities.Conversation", b =>
                 {
                     b.HasOne("BubbleShop.Domain.Entities.Business", "Business")
-                        .WithMany()
+                        .WithMany("Conversations")
                         .HasForeignKey("BusinessId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("BubbleShop.Domain.Entities.Customer", "Customer")
-                        .WithMany()
+                        .WithMany("Conversations")
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Business");
@@ -1030,9 +1071,22 @@ namespace BubbleShop.Infrastructure.Migrations
                     b.Navigation("Business");
                 });
 
+            modelBuilder.Entity("ConversationMessage", b =>
+                {
+                    b.HasOne("BubbleShop.Domain.Entities.Conversation", "Conversation")
+                        .WithMany("Messages")
+                        .HasForeignKey("ConversationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Conversation");
+                });
+
             modelBuilder.Entity("BubbleShop.Domain.Entities.Business", b =>
                 {
                     b.Navigation("AutomationRules");
+
+                    b.Navigation("Conversations");
 
                     b.Navigation("Customers");
 
@@ -1043,8 +1097,15 @@ namespace BubbleShop.Infrastructure.Migrations
                     b.Navigation("Products");
                 });
 
+            modelBuilder.Entity("BubbleShop.Domain.Entities.Conversation", b =>
+                {
+                    b.Navigation("Messages");
+                });
+
             modelBuilder.Entity("BubbleShop.Domain.Entities.Customer", b =>
                 {
+                    b.Navigation("Conversations");
+
                     b.Navigation("Orders");
                 });
 

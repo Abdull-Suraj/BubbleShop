@@ -1,6 +1,5 @@
 using BubbleShop.Domain.Common;
-
-namespace BubbleShop.Domain.Entities;
+using BubbleShop.Domain.Entities;
 
 public sealed class ConversationMessage : BaseEntity
 {
@@ -18,6 +17,10 @@ public sealed class ConversationMessage : BaseEntity
         IsFromCustomer = isFromCustomer;
         Timestamp = DateTime.UtcNow;
     }
+
+    public Guid ConversationId { get; private set; }
+
+    public Conversation Conversation { get; private set; } = null!;
 
     public string Message { get; private set; } = string.Empty;
 

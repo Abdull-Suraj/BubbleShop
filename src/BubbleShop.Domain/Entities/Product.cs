@@ -54,8 +54,8 @@ public sealed class Product : BaseEntity
     public int ReservedQuantity { get; private set; }
     public string Category { get; private set; } = string.Empty;
     public string? ImageUrl { get; private set; }
-    public List<string> Images { get; private set; } = new();
-    public List<string> Tags { get; private set; } = new();
+    public List<string> Images { get; private set; }
+    public List<string> Tags { get; private set; } 
     public string ThumbnailUrl { get; private set; } = string.Empty;
     public bool IsActive { get; private set; }
     public bool IsDigital { get; private set; }
