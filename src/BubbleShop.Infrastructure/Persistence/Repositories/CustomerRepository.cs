@@ -37,10 +37,12 @@ public sealed class CustomerRepository(AppDbContext dbContext) : Repository<Cust
     public async Task<IReadOnlyList<Customer>> SearchCustomersAsync(Guid businessId, string searchTerm, CancellationToken cancellationToken = default)
         => await DbContext.Customers
             .Where(x => x.BusinessId == businessId
-                     && !x.IsDeleted
-                     && (x.Name.Contains(searchTerm)
-                         || x.WhatsAppNumber.Contains(searchTerm)
-                         || x.Email.Contains(searchTerm)))
+         && !x.IsDeleted
+         && (
+             x.Name.Contains(searchTerm) ||
+             x.WhatsAppNumber.Contains(searchTerm) ||
+             (x.Email != null && x.Email.Contains(searchTerm))
+         ))
             .OrderBy(x => x.Name)
             .ToListAsync(cancellationToken);
 }

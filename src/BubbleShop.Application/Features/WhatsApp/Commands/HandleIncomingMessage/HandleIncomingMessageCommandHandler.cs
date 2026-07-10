@@ -13,7 +13,7 @@ public sealed class HandleIncomingMessageCommandHandler(
     IMediator mediator,
     IConversationRepository conversationRepository,
     IUnitOfWork unitOfWork,
-    ICustomerRepository customerRepository,
+
     IWhatsAppService whatsAppService)
     : IRequestHandler<HandleIncomingMessageCommand, Result<string>>
 {

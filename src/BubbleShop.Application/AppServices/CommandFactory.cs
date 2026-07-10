@@ -2,7 +2,7 @@
 using BubbleShop.Application.Common.Models;
 using BubbleShop.Application.Common.Commands;
 using BubbleShop.Application.Features.Orders.Commands.CreateOrder;
-using BubbleShop.Application.Features.Orders.Queries;
+//using BubbleShop.Application.Features.Orders.Queries;
 using BubbleShop.Application.Features.Products.Queries;
 using BubbleShop.Application.Features.Products.Queries.SearchProducts;
 using BubbleShop.Domain.Common;
@@ -10,7 +10,7 @@ using BubbleShop.Domain.Entities;
 using BubbleShop.Domain.Exceptions;
 using BubbleShop.Domain.Interfaces.Repositories;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
+//using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using BubbleShop.Application.Features.Cart.Commands.AddToCart;
 using BubbleShop.Application.Features.Cart.Commands.RemoveFromCart;
@@ -22,7 +22,7 @@ namespace BubbleShop.Application.AppServices;
 
 public class CommandFactory : ICommandFactory
 {
-    private readonly IMediator _mediator;
+  
     private readonly IProductRepository _productRepository;
     private readonly ICustomerRepository _customerRepository;
     private readonly ILogger<CommandFactory> _logger;
@@ -33,12 +33,19 @@ public class CommandFactory : ICommandFactory
         ICustomerRepository customerRepository,
         ILogger<CommandFactory> logger)
     {
-        _mediator = mediator;
+       
         _productRepository = productRepository;
         _customerRepository = customerRepository;
         _logger = logger;
     }
 
+    private static Guid GetBusinessId(MessageContext context)
+    {
+        if (!Guid.TryParse(context.BusinessId, out var businessId))
+            throw new DomainException("Invalid business id.");
+
+        return businessId;
+    }
     public async Task<IBaseRequest> CreateCommandAsync(
         IntentResult intent,
         MessageContext context,
@@ -57,7 +64,8 @@ public class CommandFactory : ICommandFactory
                 Intent.CheckStock => CreateCheckStockCommand(intent, context),
                 Intent.ViewCart => await CreateViewCartCommand(context, cancellationToken),
                 Intent.AddToCart => await CreateAddToCartCommand(intent, context, cancellationToken),
-                Intent.RemoveFromCart => CreateRemoveFromCartCommand(intent, context),
+                Intent.RemoveFromCart =>
+    await CreateRemoveFromCartCommand(intent, context, cancellationToken),
                 Intent.Checkout => await CreateCheckoutCommand(context, cancellationToken),
                 Intent.GetStoreHours => CreateGetStoreHoursCommand(context),
                 _ => CreateUnknownIntentCommand(intent)
@@ -77,14 +85,31 @@ public class CommandFactory : ICommandFactory
 
     private async Task<CreateOrderCommand> CreateOrderCommand(IntentResult intent, MessageContext context, CancellationToken cancellationToken)
     {
-        if (!intent.Parameters.ContainsKey("ProductName"))
-            throw new DomainException("Product name is required for order creation");
+        if (!intent.Parameters.TryGetValue("ProductName", out var productNameValue))
+            throw new DomainException("Product name is required");
 
-        var productName = intent.Parameters["ProductName"].ToString();
-        var quantity = intent.Parameters.ContainsKey("Quantity") ? (int)intent.Parameters["Quantity"] : 1;
+        var productName = productNameValue?.ToString();
 
-        var product = await _productRepository.GetByNameAsync(productName, Guid.Parse(context.BusinessId), cancellationToken);
+        if (string.IsNullOrWhiteSpace(productName))
+            throw new DomainException("Product name is required.");
 
+        var quantity = 1;
+
+        if (intent.Parameters.TryGetValue("Quantity", out var quantityValue))
+        {
+            quantity = quantityValue switch
+            {
+                int i => i,
+                long l => (int)l,
+                string s when int.TryParse(s, out var q) => q,
+                _ => 1
+            };
+        }
+        var businessId = GetBusinessId(context);
+        var product = await _productRepository.GetByNameAsync(
+            productName,
+            businessId,
+            cancellationToken);
         if (product == null)
         {
             throw new DomainException($"Sorry, we don't have '{productName}' in our store.");
@@ -100,31 +125,36 @@ public class CommandFactory : ICommandFactory
             new OrderItemInput(product.Id, quantity)
         };
 
+        intent.Parameters.TryGetValue("ShippingAddress", out var shipping);
+        //ShippingAddress = shipping?.ToString();
+
         return new CreateOrderCommand(
-            BusinessId: Guid.Parse(context.BusinessId),
+            BusinessId: businessId,
             CustomerId: customerId,
             Items: items,
             CustomerName: customerName,
             CustomerWhatsApp: context.ChannelUserId,
             CustomerEmail: customer?.Email,
             CustomerPhone: customer?.PhoneNumber,
-            ShippingAddress: intent.Parameters.ContainsKey("ShippingAddress")
-                ? intent.Parameters["ShippingAddress"].ToString()
-                : null,
+            ShippingAddress: shipping?.ToString(),
             Channel: context.Channel.ToString()
         );
     }
 
     private SearchProductsQuery CreateSearchProductCommand(IntentResult intent, MessageContext context)
     {
-        var searchTerm = intent.Parameters.ContainsKey("SearchTerm")
-            ? intent.Parameters["SearchTerm"].ToString()
-            : intent.RawMessage;
+        var searchTerm =
+            intent.Parameters.TryGetValue("SearchTerm", out var value)
+                ? value?.ToString()
+                : intent.RawMessage;
 
+        searchTerm ??= "";
+        if (!Guid.TryParse(context.BusinessId, out var businessId))
+            throw new DomainException("Invalid business id.");
         return new SearchProductsQuery
         {
             Keyword = searchTerm,
-            BusinessId = Guid.Parse(context.BusinessId),
+            BusinessId = businessId,
             PageNumber = 1,
             PageSize = 10
         };
@@ -132,76 +162,103 @@ public class CommandFactory : ICommandFactory
 
     private GetProductPriceQuery CreateGetProductPriceCommand(IntentResult intent, MessageContext context)
     {
-        var productName = intent.Parameters.ContainsKey("ProductName")
-            ? intent.Parameters["ProductName"].ToString()
-            : intent.RawMessage;
+        var productName =
+     intent.Parameters.TryGetValue("ProductName", out var value)
+         ? value?.ToString()
+         : intent.RawMessage;
+
+        productName ??= string.Empty;
+        var businessId = GetBusinessId(context);
 
         return new GetProductPriceQuery
         {
             ProductName = productName,
-            BusinessId = Guid.Parse(context.BusinessId)
+            BusinessId = businessId
         };
     }
 
     private CheckStockQuery CreateCheckStockCommand(IntentResult intent, MessageContext context)
     {
-        var productName = intent.Parameters.ContainsKey("ProductName")
-            ? intent.Parameters["ProductName"].ToString()
-            : intent.RawMessage;
+        var productName =
+     intent.Parameters.TryGetValue("ProductName", out var value)
+         ? value?.ToString()
+         : intent.RawMessage;
 
+        productName ??= string.Empty;
+        var businessId = GetBusinessId(context);
         return new CheckStockQuery
         {
             ProductName = productName,
-            BusinessId = Guid.Parse(context.BusinessId)
+            BusinessId = businessId
         };
     }
 
-    //private TrackOrderQuery CreateTrackOrderCommand(IntentResult intent, MessageContext context)
-    //{
-    //    var orderNumber = intent.Parameters.ContainsKey("OrderNumber")
-    //        ? intent.Parameters["OrderNumber"].ToString()
-    //        : null;
 
-    //    return new TrackOrderQuery
-    //    {
-    //        OrderNumber = orderNumber,
-    //        CustomerWhatsApp = context.ChannelUserId,
-    //        CustomerId = null
-    //    };
-    //}
 
     private async Task<GetCartQuery> CreateViewCartCommand(MessageContext context, CancellationToken cancellationToken)
     {
         var customerId = await GetOrCreateCustomerId(context, cancellationToken);
+        var businessId = GetBusinessId(context);
         return new GetCartQuery
         {
             CustomerId = customerId,
-            BusinessId = Guid.Parse(context.BusinessId)
+            BusinessId = businessId
         };
     }
 
-    private async Task<AddToCartCommand> CreateAddToCartCommand(IntentResult intent, MessageContext context, CancellationToken cancellationToken)
+    private async Task<AddToCartCommand> CreateAddToCartCommand(
+     IntentResult intent,
+     MessageContext context,
+     CancellationToken cancellationToken)
     {
-        if (!intent.Parameters.ContainsKey("ProductId") && !intent.Parameters.ContainsKey("ProductName"))
-            throw new DomainException("Product information is required to add to cart");
+        if (!intent.Parameters.ContainsKey("ProductId") &&
+            !intent.Parameters.ContainsKey("ProductName"))
+        {
+            throw new DomainException("Product information is required to add to cart.");
+        }
+
+        var businessId = GetBusinessId(context);
 
         var customerId = await GetOrCreateCustomerId(context, cancellationToken);
-        var productId = Guid.Empty;
 
-        if (intent.Parameters.ContainsKey("ProductId"))
+        Guid productId;
+
+        if (intent.Parameters.TryGetValue("ProductId", out var productIdValue))
         {
-            productId = Guid.Parse(intent.Parameters["ProductId"].ToString());
+            if (!Guid.TryParse(productIdValue?.ToString(), out productId))
+                throw new DomainException("Invalid product id.");
         }
-        else if (intent.Parameters.ContainsKey("ProductName"))
+        else
         {
-            var productName = intent.Parameters["ProductName"].ToString();
-            var product = await _productRepository.GetByNameAsync(productName, Guid.Parse(context.BusinessId), cancellationToken);
-            if (product == null)
-                throw new DomainException($"Product '{productName}' not found");
+            var productName = intent.Parameters["ProductName"]?.ToString();
+
+            if (string.IsNullOrWhiteSpace(productName))
+                throw new DomainException("Product name is required.");
+
+            var product = await _productRepository.GetByNameAsync(
+                productName,
+                businessId,
+                cancellationToken);
+
+            if (product is null)
+                throw new DomainException($"Product '{productName}' not found.");
+
             productId = product.Id;
         }
 
-        var quantity = intent.Parameters.ContainsKey("Quantity") ? (int)intent.Parameters["Quantity"] : 1;
+        var quantity = 1;
+
+        if (intent.Parameters.TryGetValue("Quantity", out var quantityValue))
+        {
+            quantity = quantityValue switch
+            {
+                int i => i,
+                long l => (int)l,
+                string s when int.TryParse(s, out var q) => q,
+                _ => 1
+            };
+            quantity = Math.Max(quantity, 1);
+        }
 
         return new AddToCartCommand
         {
@@ -210,81 +267,48 @@ public class CommandFactory : ICommandFactory
             Quantity = quantity
         };
     }
-
-    private RemoveFromCartCommand CreateRemoveFromCartCommand(IntentResult intent, MessageContext context)
+    private async Task<RemoveFromCartCommand> CreateRemoveFromCartCommand(
+        IntentResult intent,
+        MessageContext context,
+        CancellationToken cancellationToken)
     {
-        if (!intent.Parameters.ContainsKey("CartItemId"))
-            throw new DomainException("Cart item ID is required to remove from cart");
+        if (!intent.Parameters.TryGetValue("CartItemId", out var cartItemValue))
+            throw new DomainException("Cart item id is required.");
+
+        if (!Guid.TryParse(cartItemValue?.ToString(), out var cartItemId))
+            throw new DomainException("Invalid cart item id.");
+        var customerId = await GetOrCreateCustomerId(context, cancellationToken);
 
         return new RemoveFromCartCommand
         {
-            CustomerId = Guid.NewGuid(),
-            CartItemId = Guid.Parse(intent.Parameters["CartItemId"].ToString())
+            CustomerId = customerId,
+            CartItemId = cartItemId
         };
     }
 
     private async Task<CheckoutCommand> CreateCheckoutCommand(MessageContext context, CancellationToken cancellationToken)
     {
         var customerId = await GetOrCreateCustomerId(context, cancellationToken);
+        var businessId = GetBusinessId(context);
         return new CheckoutCommand
         {
             CustomerId = customerId,
-            BusinessId = Guid.Parse(context.BusinessId),
+            BusinessId = businessId,
             Channel = context.Channel.ToString()
         };
     }
 
-    //private ApplyCouponCommand CreateApplyCouponCommand(IntentResult intent, MessageContext context)
-    //{
-    //    if (!intent.Parameters.ContainsKey("CouponCode"))
-    //        throw new DomainException("Coupon code is required");
-
-    //    return new ApplyCouponCommand
-    //    {
-    //        CustomerId = Guid.NewGuid(),
-    //        CouponCode = intent.Parameters["CouponCode"].ToString()
-    //    };
-    //}
-
+ 
     private GetStoreHoursQuery CreateGetStoreHoursCommand(MessageContext context)
     {
+        var businessId = GetBusinessId(context);
         return new GetStoreHoursQuery
         {
-            BusinessId = Guid.Parse(context.BusinessId)
+            BusinessId = businessId
         };
     }
 
-    //private CreateSupportTicketCommand CreateContactSupportCommand(IntentResult intent, MessageContext context)
-    //{
-    //    return new CreateSupportTicketCommand
-    //    {
-    //        CustomerId = null,
-    //        CustomerWhatsApp = context.ChannelUserId,
-    //        CustomerName = intent.Parameters.ContainsKey("CustomerName") ? intent.Parameters["CustomerName"].ToString() : null,
-    //        Message = intent.RawMessage,
-    //        Channel = context.Channel.ToString(),
-    //        Priority = "Normal"
-    //    };
-    //}
 
-    //private GetHelpQuery CreateGetHelpCommand(IntentResult intent, MessageContext context)
-    //{
-    //    return new GetHelpQuery
-    //    {
-    //        BusinessId = Guid.Parse(context.BusinessId),
-    //        CustomerId = null,
-    //        Topic = intent.Parameters.ContainsKey("Topic") ? intent.Parameters["Topic"].ToString() : "General"
-    //    };
-    //}
-
-    //private JustChattingCommand CreateChattingCommand(IntentResult intent, MessageContext context)
-    //{
-    //    return new JustChattingCommand
-    //    {
-    //        Message = intent.RawMessage,
-    //        Response = intent.ResponseMessage
-    //    };
-    //}
 
     private UnknownIntentCommand CreateUnknownIntentCommand(IntentResult intent)
     {
@@ -306,10 +330,10 @@ public class CommandFactory : ICommandFactory
         {
             return context.CustomerId.Value;
         }
-
+        var businessId = GetBusinessId(context);
         var existingCustomer = await _customerRepository.GetByWhatsAppNumberAsync(
             context.ChannelUserId,
-            Guid.Parse(context.BusinessId),
+            businessId,
             cancellationToken);
 
         if (existingCustomer != null)
@@ -322,7 +346,7 @@ public class CommandFactory : ICommandFactory
 
         var newCustomer = new Customer(
             
-            businessId: Guid.Parse(context.BusinessId),
+            businessId: businessId,
             name: customerName,
             whatsappNumber: context.ChannelUserId,  
             phoneNumber: context.ChannelUserId,

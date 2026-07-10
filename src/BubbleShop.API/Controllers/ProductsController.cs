@@ -245,23 +245,29 @@ public sealed class ProductsController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         // Get all products (you might want to add filters)
-        var result = await _mediator.Send(new GetAllProductsQuery(
-            PageSize: int.MaxValue,
-            BusinessId: businessId
-
-        ), cancellationToken);
+        var result = await _mediator.Send(
+            new GetAllProductsQuery(
+                PageSize: int.MaxValue,
+                BusinessId: businessId),
+            cancellationToken);
 
         if (result.IsFailure)
             return BadRequest(new { error = result.Error });
 
+        if (result.Value is null)
+            return NotFound(new { error = "No products found." });
+
         var products = result.Value;
 
-        return format.ToLower() switch
+        return format.ToLowerInvariant() switch
         {
             "csv" => ExportToCsv(products),
             "json" => ExportToJson(products),
             "excel" => ExportToExcel(products),
-            _ => BadRequest(new { error = "Unsupported format. Supported formats: csv, json, excel" })
+            _ => BadRequest(new
+            {
+                error = "Unsupported format. Supported formats: csv, json, excel"
+            })
         };
     }
 

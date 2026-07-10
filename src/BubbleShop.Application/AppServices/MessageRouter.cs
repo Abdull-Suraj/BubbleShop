@@ -44,6 +44,7 @@ namespace BubbleShop.Application.AppServices
             _businessRepository = businessRepository;
             _conversationRepository = conversationRepository;
             _logger = logger;
+            _unitOfWork = unitOfWork;
         }
 
         /// <summary>

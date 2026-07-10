@@ -7,6 +7,7 @@ public sealed class Product : BaseEntity
 {
     private Product()
     {
+
     }
 
     private Product(Guid id, string name, string description, decimal price, int stockQuantity, string? imageUrl, string? category = null, string? sku = null, Guid? businessId = null)
@@ -54,8 +55,8 @@ public sealed class Product : BaseEntity
     public int ReservedQuantity { get; private set; }
     public string Category { get; private set; } = string.Empty;
     public string? ImageUrl { get; private set; }
-    public List<string> Images { get; private set; }
-    public List<string> Tags { get; private set; } 
+    public List<string> Images { get; private set; } = [];
+    public List<string> Tags { get; private set; } = [];
     public string ThumbnailUrl { get; private set; } = string.Empty;
     public bool IsActive { get; private set; }
     public bool IsDigital { get; private set; }

@@ -32,9 +32,9 @@ public sealed class GetCustomersByBusinessQueryHandler : IRequestHandler<GetCust
             if (!string.IsNullOrWhiteSpace(request.Search))
             {
                 allCustomers = allCustomers.Where(c =>
-                    c.Name.Contains(request.Search, StringComparison.OrdinalIgnoreCase) ||
-                    c.Email.Contains(request.Search, StringComparison.OrdinalIgnoreCase) ||
-                    c.WhatsAppNumber.Contains(request.Search, StringComparison.OrdinalIgnoreCase)
+                    c.Name?.Contains(request.Search, StringComparison.OrdinalIgnoreCase) == true ||
+                    c.Email?.Contains(request.Search, StringComparison.OrdinalIgnoreCase) == true ||
+                    c.WhatsAppNumber?.Contains(request.Search, StringComparison.OrdinalIgnoreCase) == true
                 ).ToList();
             }
 

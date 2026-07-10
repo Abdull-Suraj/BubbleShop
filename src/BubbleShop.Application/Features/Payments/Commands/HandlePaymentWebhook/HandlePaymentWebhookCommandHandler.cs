@@ -34,11 +34,10 @@ public sealed class HandlePaymentWebhookCommandHandler : IRequestHandler<HandleP
                 return Result.Failure("Order not found.", "NotFound");
             }
 
-            // Get or create payment
-            Payment payment = order.Payment;
+            Payment? payment = order.Payment;
+
             if (payment is null)
             {
-                // Create new payment
                 payment = new Payment(
                     orderId: order.Id,
                     businessId: order.BusinessId,
@@ -47,13 +46,12 @@ public sealed class HandlePaymentWebhookCommandHandler : IRequestHandler<HandleP
                     customerId: order.CustomerId,
                     provider: "Flutterwave"
                 );
+
                 await _paymentRepository.AddAsync(payment, cancellationToken);
             }
 
-            // Mark payment as successful
             payment.MarkSuccessful(request.TransactionId, request.GatewayResponse);
 
-            // Attach payment to order
             order.AttachPayment(payment);
 
             // Update order status - Use PaymentReceived instead of Paid
