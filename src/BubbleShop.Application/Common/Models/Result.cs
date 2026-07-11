@@ -61,6 +61,14 @@ public class Result<T> : Result
             Errors = new() { error }
         };
 
+    public static new Result<T> Failure(string error, string errorCode)
+        => new()
+        {
+            Error = error,
+            ErrorCode = errorCode,
+            Errors = new() { error }
+        };
+
     public static new Result<T> Failure(List<string> errors)
         => new()
         {

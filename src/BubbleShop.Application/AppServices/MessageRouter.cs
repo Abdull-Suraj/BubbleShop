@@ -81,7 +81,7 @@ namespace BubbleShop.Application.AppServices
 
                 var command = await _commandFactory.CreateCommandAsync(intentResult, context, cancellationToken);
 
-                object result = await _mediator.Send(command, cancellationToken);
+                object? result = await _mediator.Send(command, cancellationToken);
 
                 // Step 7: Generate natural language response
                 var response = await GenerateResponseAsync(intentResult, context, result, cancellationToken);
@@ -103,10 +103,9 @@ namespace BubbleShop.Application.AppServices
                 return "I'm sorry, I'm having trouble processing your request right now. Please try again later or contact our support team. 🙏";
             }
         }
-        private string BuildOrderResponse(object result)
+        private string BuildOrderResponse(object? result)
         {
-            if (result is Result<OrderDto> orderResult &&
-                orderResult.IsSuccess)
+            if (result is Result<OrderDto> { IsSuccess: true, Value: not null } orderResult)
             {
                 var order = orderResult.Value;
 
@@ -120,12 +119,12 @@ namespace BubbleShop.Application.AppServices
             return "❌ Unable to create order.";
         }
 
-        private string BuildSearchResponse(object result)
+        private string BuildSearchResponse(object? result)
         {
             if (result is Result<PagedResult<ProductDto>> searchResult &&
                 searchResult.IsSuccess)
             {
-                var products = searchResult.Value.Items.ToList();
+                var products = searchResult.Value!.Items.ToList();
 
                 if (!products.Any())
                     return "No products found.";
@@ -146,12 +145,12 @@ namespace BubbleShop.Application.AppServices
             return "No products found.";
         }
 
-        private string BuildPriceResponse(object result)
+        private string BuildPriceResponse(object? result)
         {
             if (result is Result<ProductDto> productResult &&
                 productResult.IsSuccess)
             {
-                var product = productResult.Value;
+                var product = productResult.Value!;
 
                 return
                     $"💰 {product.Name}\n\n" +
@@ -162,12 +161,12 @@ namespace BubbleShop.Application.AppServices
             return "Product not found.";
         }
 
-        private string BuildStockResponse(object result)
+        private string BuildStockResponse(object? result)
         {
             if (result is Result<ProductDto> productResult &&
                 productResult.IsSuccess)
             {
-                var product = productResult.Value;
+                var product = productResult.Value!;
 
                 var status =
                     product.StockQuantity > 10 ? "✅ In Stock" :
@@ -183,12 +182,12 @@ namespace BubbleShop.Application.AppServices
             return "Unable to check stock.";
         }
 
-        private string BuildTrackOrderResponse(object result)
+        private string BuildTrackOrderResponse(object? result)
         {
             if (result is Result<OrderDto> orderResult &&
                 orderResult.IsSuccess)
             {
-                var order = orderResult.Value;
+                var order = orderResult.Value!;
 
                 return
                     $"🚚 Order Status\n\n" +
@@ -199,11 +198,14 @@ namespace BubbleShop.Application.AppServices
 
             return "Order not found.";
         }
-        private string BuildCartResponse(object result)
+        private string BuildCartResponse(object? result)
         {
             if (result is OkObjectResult ok)
             {
-                dynamic data = ok.Value!;
+                if (ok.Value is null)
+                    return "Unable to read cart.";
+
+                dynamic data = ok.Value;
 
                 var productName = data.ProductName ?? "Product";
                 var quantity = data.Quantity ?? 1;
@@ -253,18 +255,18 @@ namespace BubbleShop.Application.AppServices
                 ✅ Item added to your cart successfully.
                 """;
         }
-        private async Task<string> GenerateResponseAsync(
+        private Task<string> GenerateResponseAsync(
             IntentResult intent,
             MessageContext context,
-            object result,
+            object? result,
             CancellationToken cancellationToken)
         {
             if (!string.IsNullOrWhiteSpace(intent.ResponseMessage))
-                return intent.ResponseMessage;
+                return Task.FromResult(intent.ResponseMessage);
 
-            return intent.Intent switch
+            var response = intent.Intent switch
             {
-                Intent.CreateOrder => BuildOrderResponse(result),
+                Intent.CreateOrder => BuildOrderResponse( result),
                 Intent.SearchProduct => BuildSearchResponse(result),
                 Intent.GetProductPrice => BuildPriceResponse(result),
                 Intent.CheckStock => BuildStockResponse(result),
@@ -274,8 +276,9 @@ namespace BubbleShop.Application.AppServices
                 Intent.JustChatting => GetChattingResponse(intent),
                 _ => GetDefaultResponse()
             };
-        }
 
+            return Task.FromResult(response);
+        }
         #region Response Handlers
 
 
