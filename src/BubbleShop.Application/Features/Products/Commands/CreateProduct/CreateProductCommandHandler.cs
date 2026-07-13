@@ -18,7 +18,13 @@ public sealed class CreateProductCommandHandler(IProductRepository productReposi
             throw new DomainException("Product name is required.");
         }
 
-        var product = Product.Create(request.Name, request.Description, request.Price, request.StockQuantity, request.ImageUrl);
+        var product = Product.Create(
+            request.BusinessId,
+            request.Name,
+            request.Description,
+            request.Price,
+            request.StockQuantity,
+            request.ImageUrl);
         await productRepository.AddAsync(product, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
         logger.LogInformation("Created product {ProductId}", product.Id);

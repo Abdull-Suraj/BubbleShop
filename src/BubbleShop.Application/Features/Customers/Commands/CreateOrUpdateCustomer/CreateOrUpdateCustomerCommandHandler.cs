@@ -12,13 +12,16 @@ public sealed class CreateOrUpdateCustomerCommandHandler
 {
     private readonly ICustomerRepository _customerRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICurrentUserService _currentUser;
 
     public CreateOrUpdateCustomerCommandHandler(
         ICustomerRepository customerRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ICurrentUserService currentUser)
     {
         _customerRepository = customerRepository;
         _unitOfWork = unitOfWork;
+        _currentUser = currentUser;
     }
 
     public async Task<Result<CustomerDto>> Handle(CreateOrUpdateCustomerCommand request, CancellationToken cancellationToken)
@@ -32,20 +35,23 @@ public sealed class CreateOrUpdateCustomerCommandHandler
             {
                 // Create new customer
                 customer = new Customer(
-                    whatsappNumber: request.WhatsAppNumber,
-                    name: request.Name,
-                    email: request.Email
-                );
+         whatsappNumber: request.WhatsAppNumber,
+         name: request.Name,
+         email: request.Email,
+         phoneNumber: request.PhoneNumber,
+         businessId: _currentUser.BusinessId
+     );
 
                 if (!string.IsNullOrWhiteSpace(request.Address))
                 {
-                    customer.UpdateAddress(request.Address);
+                    customer.UpdateAddress(
+         request.Address,
+         request.City,
+         request.State
+     );
                 }
                 // Assign to business if BusinessId is provided
-                if (request.BusinessId.HasValue)
-                {
-                    customer.AssignToBusiness(request.BusinessId.Value);
-                }
+                //customer.AssignToBusiness(_currentUser.BusinessId);
 
                 await _customerRepository.AddAsync(customer, cancellationToken);
             }
@@ -59,9 +65,9 @@ public sealed class CreateOrUpdateCustomerCommandHandler
                 );
 
                 // Update BusinessId if provided
-                if (request.BusinessId.HasValue && customer.BusinessId != request.BusinessId.Value)
+                if (customer.BusinessId != _currentUser.BusinessId)
                 {
-                    customer.AssignToBusiness(request.BusinessId.Value);
+                    customer.AssignToBusiness(_currentUser.BusinessId);
                 }
 
                 await _customerRepository.UpdateAsync(customer, cancellationToken);

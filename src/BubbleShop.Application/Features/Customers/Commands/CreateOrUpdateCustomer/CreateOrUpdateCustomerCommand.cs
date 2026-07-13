@@ -7,7 +7,9 @@ namespace BubbleShop.Application.Features.Customers.Commands.CreateOrUpdateCusto
 public sealed record CreateOrUpdateCustomerCommand(
     string WhatsAppNumber,
     string Name,
+    string? PhoneNumber = null,
     string? Email = null,
     string? Address = null,
-    Guid? BusinessId = null
+    string? City = null,
+    string? State = null
 ) : IRequest<Result<CustomerDto>>;

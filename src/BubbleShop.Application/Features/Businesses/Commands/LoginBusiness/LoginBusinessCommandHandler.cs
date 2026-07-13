@@ -78,13 +78,14 @@ public sealed class LoginBusinessCommandHandler : IRequestHandler<LoginBusinessC
 
         var claims = new[]
         {
-            new Claim(JwtRegisteredClaimNames.Sub, business.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, business.Email),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim("businessId", business.Id.ToString()),
-            new Claim("businessName", business.BusinessName),
-            new Claim("whatsappNumber", business.WhatsAppNumber)
-        };
+            new Claim(ClaimTypes.NameIdentifier, business.Id.ToString()),
+            new Claim(ClaimTypes.Name, business.BusinessName),
+            new Claim(ClaimTypes.Email, business.Email),
+
+            new Claim("whatsappNumber", business.WhatsAppNumber),
+
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+};
 
         var token = new JwtSecurityToken(
             issuer: jwtSettings["Issuer"],

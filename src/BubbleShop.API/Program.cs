@@ -1,5 +1,7 @@
+using BubbleShop.API.APIServices;
 using BubbleShop.API.Middleware;
 using BubbleShop.Application;
+using BubbleShop.Application.Common.Interfaces;
 using BubbleShop.Infrastructure;
 using BubbleShop.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -25,7 +27,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>("database");
-
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 // CORS
 builder.Services.AddCors(options =>
 {

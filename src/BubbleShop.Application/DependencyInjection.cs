@@ -14,6 +14,7 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+    
         // Register Application Services
         services.AddScoped<IAutomationService, AutomationService>();
         services.AddScoped<IAIIntentService, AIIntentService>();
@@ -21,6 +22,7 @@ public static class DependencyInjection
         services.AddScoped<IMessageRouter, MessageRouter>();
         //services.AddScoped<IDeliveryService, DeliveryService>();
         services.AddScoped<IAIAgentService, DummyAIAgentService>();
+    
 
         // Register MediatR (CQRS)
         services.AddMediatR(cfg =>

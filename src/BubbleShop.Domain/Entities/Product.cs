@@ -10,8 +10,21 @@ public sealed class Product : BaseEntity
 
     }
 
-    private Product(Guid id, string name, string description, decimal price, int stockQuantity, string? imageUrl, string? category = null, string? sku = null, Guid? businessId = null)
+    private Product(
+      Guid id,
+      Guid businessId,
+      string name,
+      string description,
+      decimal price,
+      int stockQuantity,
+      string? imageUrl,
+      string? category = null,
+      string? sku = null)
     {
+        if (businessId == Guid.Empty)
+            throw new DomainException("BusinessId is required.");
+
+        BusinessId = businessId;
         if (price < 0)
         {
             throw new DomainException("Price cannot be negative.");
@@ -28,7 +41,7 @@ public sealed class Product : BaseEntity
         }
 
         Id = id;
-        BusinessId = businessId ?? Guid.Empty;
+        BusinessId = businessId;
         Name = name;
         Description = description ?? string.Empty;
         Price = price;
@@ -69,11 +82,11 @@ public sealed class Product : BaseEntity
     public IReadOnlyCollection<OrderItem> OrderItems => _orderItems;
 
     // Factory Methods
-    public static Product Create(string name, string description, decimal price, int stockQuantity, string? imageUrl, string? category = null, Guid? businessId = null)
-        => new(Guid.NewGuid(), name, description, price, stockQuantity, imageUrl, category, null, businessId);
+    //public static Product Create(string name, string description, decimal price, int stockQuantity, string? imageUrl, string? category = null, Guid? businessId = null)
+    //    => new(Guid.NewGuid(), name, description, price, stockQuantity, imageUrl, category, null, businessId);
 
     public static Product Create(Guid businessId, string name, string description, decimal price, int stockQuantity, string? imageUrl, string? category = null)
-        => new(Guid.NewGuid(), name, description, price, stockQuantity, imageUrl, category, null, businessId);
+        => new(Guid.NewGuid(), businessId,name, description, price, stockQuantity, imageUrl, category);
 
     // Update Methods
     public void Update(string name, string description, decimal price, string? imageUrl, bool isActive)

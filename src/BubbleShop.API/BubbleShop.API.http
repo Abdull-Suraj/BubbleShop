@@ -1,12 +1,12 @@
 ﻿### Environment Variables
 @baseUrl = http://localhost:5088
 @businessId = 4b491c15-ff5b-4547-8eb9-b4a7b37ac55c
-# @customerId = YOUR_CUSTOMER_ID_HERE
-# @productId = YOUR_PRODUCT_ID_HERE
-# @orderId = YOUR_ORDER_ID_HERE
+@customerId = fb026453-c2c1-487f-b785-a3494631ebca
+@productId = bed5d561-088e-40fd-ba8e-63efcf81a31e
+@orderId = 5d3b0c69-9c6a-43e7-8268-a58bb7a728d2
 # @orderNumber = YOUR_ORDER_NUMBER_HERE
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0YjQ5MWMxNS1mZjViLTQ1NDctOGViOS1iNGE3YjM3YWM1NWMiLCJlbWFpbCI6ImlicmFoZWVtZWRyeXNAZ21haWwuY29tIiwianRpIjoiMDhmN2MwOGUtYjQzZC00MTY2LWJhN2QtZGJlY2I1NTc1NDhjIiwiYnVzaW5lc3NJZCI6IjRiNDkxYzE1LWZmNWItNDU0Ny04ZWI5LWI0YTdiMzdhYzU1YyIsImJ1c2luZXNzTmFtZSI6IlRlc3QgU3RvcmUiLCJ3aGF0c2FwcE51bWJlciI6IisyMzQ5MDY3NzQ4NTgyIiwiZXhwIjoxNzgzODgzMTY4LCJpc3MiOiJCdWJibGVTaG9wIiwiYXVkIjoiQnViYmxlU2hvcEFQSSJ9.VQzu8yzxm1dQ6kZ9A4Ni4hdZ4XEKFUWf_dT3P53gNcI
-# @whatsappNumber = +2349067748582
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjRiNDkxYzE1LWZmNWItNDU0Ny04ZWI5LWI0YTdiMzdhYzU1YyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJaZW5naSBUZWNobm9sb2dpZXMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ1cGRhdGVkQHN0b3JlLmNvbSIsIndoYXRzYXBwTnVtYmVyIjoiKzE1NTUxMjM0NTY3IiwianRpIjoiODEyMDM5ZWQtYzQ5ZS00OGRiLWEzOTktMzkxNzEyZGJmZWRmIiwiZXhwIjoxNzg0MDM2ODQwLCJpc3MiOiJCdWJibGVTaG9wIiwiYXVkIjoiQnViYmxlU2hvcEFQSSJ9.i7pPiLLrbKcA67e3vbbWOuLpug23qG_FHtjNhK-5e1w
+@whatsAppNumber = +1234567890
 # @transactionReference = YOUR_TRANSACTION_REFERENCE_HERE
 
 
@@ -64,6 +64,8 @@ Authorization: Bearer {{token}}
 GET {{baseUrl}}/api/businesses/{{businessId}}/wallet
 Authorization: Bearer {{token}}
 
+### Get all products (paginated)
+GET {{baseUrl}}/api/products?pageNumber=1&pageSize=20
 
 ### Create a new product (requires authentication)
 POST {{baseUrl}}/api/products
@@ -77,6 +79,144 @@ Content-Type: application/json
   "price": 25.99,
   "stockQuantity": 100,
   "category": "Food & Groceries",
-  "imageUrl": "https://example.com/rice.jpg",
-  "isActive": true
+  "imageUrl": "https://example.com/rice.jpg"
+  
 }
+
+### Get product by ID
+GET {{baseUrl}}/api/products/{{productId}}
+
+
+### Search products
+GET {{baseUrl}}/api/products/search?keyword=rice&category=Food&pageNumber=1&pageSize=10
+
+
+### Update product
+PUT {{baseUrl}}/api/products/{{productId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Premium Basmati Rice",
+  "description": "High quality basmati rice 5kg bag - premium grade",
+  "price": 30.99,
+  "imageUrl": "https://example.com/rice-updated.jpg",
+  "isActive": false
+
+}
+
+
+### Update product stock
+PATCH {{baseUrl}}/api/products/{{productId}}/stock
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Quantity": 85
+}
+
+
+### Activate product
+POST {{baseUrl}}/api/products/{{productId}}/activate
+Authorization: Bearer {{token}}
+
+
+### Deactivate product
+POST {{baseUrl}}/api/products/{{productId}}/deactivate
+Authorization: Bearer {{token}}
+
+
+
+### Export products to CSV
+GET {{baseUrl}}/api/products/export?format=csv
+
+
+### Delete product
+DELETE {{baseUrl}}/api/products/{{productId}}
+Authorization: Bearer {{token}}
+
+
+
+### Create or update customer
+POST {{baseUrl}}/api/customers
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "whatsAppNumber": "+1234567890",
+  "phoneNumber": "+1234567890",
+  "email": "john.doe@example.com",
+  "address": "456 Oak St, City",
+  "city": "Kano",
+  "state": "Kano"
+}
+
+
+### Get customers by business
+GET {{baseUrl}}/api/customers/business/{{businessId}}?pageNumber=1&pageSize=20
+Authorization: Bearer {{token}}
+
+### Get customer by ID
+GET {{baseUrl}}/api/customers/{{customerId}}
+Authorization: Bearer {{token}}
+
+
+### Get customer by WhatsApp number
+GET {{baseUrl}}/api/customers/by-whatsapp/+1234567890?businessId={{businessId}}
+
+
+
+### Block customer
+POST {{baseUrl}}/api/customers/{{customerId}}/block
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "reason": "Suspicious activity"
+}
+
+
+### Unblock customer
+POST {{baseUrl}}/api/customers/{{customerId}}/unblock
+Authorization: Bearer {{token}}
+
+### Delete customer
+DELETE {{baseUrl}}/api/customers/{{customerId}}
+Authorization: Bearer {{token}}
+
+
+
+### Create a new order
+POST {{baseUrl}}/api/orders
+Content-Type: application/json
+
+{
+  "businessId": "{{businessId}}",
+  "customerId": "{{customerId}}",
+  "items": [
+    {
+      "productId": "{{productId}}",
+      "quantity": 2
+    }
+  ],
+  "customerName": "John Doe",
+  "customerWhatsApp": "+1234567890",
+  "customerEmail": "john.doe@example.com",
+  "customerPhone": "+1234567890",
+  "shippingAddress": "123 Main St, City"
+}
+
+### Get all orders (paginated)
+GET {{baseUrl}}/api/orders?pageNumber=1&pageSize=20
+Authorization: Bearer {{token}}
+
+
+### Get order by ID
+GET {{baseUrl}}/api/orders/{{orderId}}
+Authorization: Bearer {{token}}
+
+
+### Get orders by customer
+GET {{baseUrl}}/api/orders/customer/{{customerId}}
+Authorization: Bearer {{token}}
