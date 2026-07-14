@@ -4,9 +4,10 @@
 @customerId = fb026453-c2c1-487f-b785-a3494631ebca
 @productId = bed5d561-088e-40fd-ba8e-63efcf81a31e
 @orderId = 5d3b0c69-9c6a-43e7-8268-a58bb7a728d2
-# @orderNumber = YOUR_ORDER_NUMBER_HERE
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjRiNDkxYzE1LWZmNWItNDU0Ny04ZWI5LWI0YTdiMzdhYzU1YyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJaZW5naSBUZWNobm9sb2dpZXMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ1cGRhdGVkQHN0b3JlLmNvbSIsIndoYXRzYXBwTnVtYmVyIjoiKzE1NTUxMjM0NTY3IiwianRpIjoiODEyMDM5ZWQtYzQ5ZS00OGRiLWEzOTktMzkxNzEyZGJmZWRmIiwiZXhwIjoxNzg0MDM2ODQwLCJpc3MiOiJCdWJibGVTaG9wIiwiYXVkIjoiQnViYmxlU2hvcEFQSSJ9.i7pPiLLrbKcA67e3vbbWOuLpug23qG_FHtjNhK-5e1w
-@whatsAppNumber = +1234567890
+@orderNumber = ORD-2026
+@whatsAppNumber = "+2348162647009"
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjRiNDkxYzE1LWZmNWItNDU0Ny04ZWI5LWI0YTdiMzdhYzU1YyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJaZW5naSBUZWNobm9sb2dpZXMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ1cGRhdGVkQHN0b3JlLmNvbSIsIndoYXRzYXBwTnVtYmVyIjoiKzE1NTUxMjM0NTY3IiwianRpIjoiZjUzZWQyMTItMzcxMC00YTU4LThkYmEtNDc0YTZjODRkODVjIiwiZXhwIjoxNzg0MTIyMTE0LCJpc3MiOiJCdWJibGVTaG9wIiwiYXVkIjoiQnViYmxlU2hvcEFQSSJ9.BAelOMjh2akDa0NrCFuksSp_Y6w6bc0RV_EafGHPvmA,
+#@whatsAppNumber = +1234567890
 # @transactionReference = YOUR_TRANSACTION_REFERENCE_HERE
 
 
@@ -220,3 +221,50 @@ Authorization: Bearer {{token}}
 ### Get orders by customer
 GET {{baseUrl}}/api/orders/customer/{{customerId}}
 Authorization: Bearer {{token}}
+
+
+### Get orders by business
+GET {{baseUrl}}/api/orders/business/{{businessId}}?pageNumber=1&pageSize=20
+Authorization: Bearer {{token}}
+
+
+### Track order by order number
+GET {{baseUrl}}/api/orders/track/{{orderNumber}}
+
+
+### Confirm order
+POST {{baseUrl}}/api/orders/{{orderId}}/confirm
+Authorization: Bearer {{token}}
+
+
+### Cancel order
+POST {{baseUrl}}/api/orders/{{orderId}}/cancel
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "reason": "Customer changed mind"
+}
+
+### Update order status
+PATCH {{baseUrl}}/api/orders/{{orderId}}/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "Shipped"
+}
+
+
+### Register a channel
+POST {{baseUrl}}/api/channels/register
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "businessId": "{{businessId}}",
+  "channelType": "whatsapp",
+  "webhookUrl": "https://your-webhook-url.com/whatsapp",
+  "apiKey": "your-api-key-here",
+  "isActive": true
+}

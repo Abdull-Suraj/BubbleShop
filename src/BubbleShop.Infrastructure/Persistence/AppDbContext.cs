@@ -18,6 +18,7 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<Channel> Channels => Set<Channel>();
     public DbSet<Payment> Payments => Set<Payment>();
     //public DbSet<Delivery> Deliveries => Set<Delivery>();
     public DbSet<Conversation> Conversations => Set<Conversation>();
@@ -586,7 +587,40 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
             entity.Property(x => x.Timestamp)
                 .IsRequired();
         });
+        // Channel Configuration
+        modelBuilder.Entity<Channel>(entity =>
+        {
+            
 
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.ChannelType)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
+            entity.Property(x => x.WebhookUrl)
+                .HasMaxLength(500);
+
+            entity.Property(x => x.ApiKey)
+                .HasMaxLength(500);
+
+            entity.Property(x => x.IsActive)
+                .IsRequired();
+
+            entity.Property(x => x.IsVerified)
+                .IsRequired();
+
+            entity.HasIndex(x => new
+            {
+                x.BusinessId,
+                x.ChannelType
+            }).IsUnique();
+
+            entity.HasOne(x => x.Business)
+                .WithMany(x => x.Channels)
+                .HasForeignKey(x => x.BusinessId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
         // AutomationRule Configuration
         modelBuilder.Entity<AutomationRule>(entity =>
         {

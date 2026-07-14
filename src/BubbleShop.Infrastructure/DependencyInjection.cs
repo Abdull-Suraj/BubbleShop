@@ -22,7 +22,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.Configure<DeliveryOptions>(configuration.GetSection(DeliveryOptions.SectionName));
         services.Configure<EmailOptions>(configuration.GetSection("Email"));
-
+        services.AddScoped<IChannelRepository, ChannelRepository>();
         // Register DbContext - Use DefaultConnection or BubbleShopConnection
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(

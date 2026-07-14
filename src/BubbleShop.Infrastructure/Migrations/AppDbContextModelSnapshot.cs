@@ -270,6 +270,57 @@ namespace BubbleShop.Infrastructure.Migrations
                     b.ToTable("BusinessSettings");
                 });
 
+            modelBuilder.Entity("BubbleShop.Domain.Entities.Channel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ApiKey")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid>("BusinessId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ChannelType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsVerified")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastActiveAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("VerifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("WebhookUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusinessId", "ChannelType")
+                        .IsUnique();
+
+                    b.ToTable("Channels");
+                });
+
             modelBuilder.Entity("BubbleShop.Domain.Entities.Conversation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -935,6 +986,17 @@ namespace BubbleShop.Infrastructure.Migrations
                     b.Navigation("WorkingHours");
                 });
 
+            modelBuilder.Entity("BubbleShop.Domain.Entities.Channel", b =>
+                {
+                    b.HasOne("BubbleShop.Domain.Entities.Business", "Business")
+                        .WithMany("Channels")
+                        .HasForeignKey("BusinessId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Business");
+                });
+
             modelBuilder.Entity("BubbleShop.Domain.Entities.Conversation", b =>
                 {
                     b.HasOne("BubbleShop.Domain.Entities.Business", "Business")
@@ -1085,6 +1147,8 @@ namespace BubbleShop.Infrastructure.Migrations
             modelBuilder.Entity("BubbleShop.Domain.Entities.Business", b =>
                 {
                     b.Navigation("AutomationRules");
+
+                    b.Navigation("Channels");
 
                     b.Navigation("Conversations");
 

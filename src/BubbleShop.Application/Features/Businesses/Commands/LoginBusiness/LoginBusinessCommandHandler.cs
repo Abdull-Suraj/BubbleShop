@@ -41,12 +41,24 @@ public sealed class LoginBusinessCommandHandler : IRequestHandler<LoginBusinessC
 
             // Verify password
             if (!BCrypt.Net.BCrypt.Verify(request.Password, business.PasswordHash))
-                return Result<LoginResponseDto>.Failure("Invalid email or password", "Unauthorized");
+            {
+                _logger.LogWarning("Invalid password for email: {Email}", request.Email);
 
-            // Check if business is active
-            if (business.Status != BusinessStatus.Active && business.Status != BusinessStatus.Pending)
-                return Result<LoginResponseDto>.Failure("Account is not active. Please contact support.", "Unauthorized");
+                return Result<LoginResponseDto>.Failure(
+                    "Invalid email or password",
+                    "Unauthorized");
+            }
 
+
+          
+            // Check account status
+            if (business.Status != BusinessStatus.Active &&
+                business.Status != BusinessStatus.Pending)
+            {
+                return Result<LoginResponseDto>.Failure(
+                    "Account is not active. Please contact support.",
+                    "Unauthorized");
+            }
             // Generate JWT token
             var token = GenerateJwtToken(business);
             var expiresAt = DateTime.UtcNow.AddHours(24);
