@@ -12,6 +12,7 @@ public class MessageResponse
     public Guid? ConversationId { get; set; }
     public string? Intent { get; set; }
 
+
     public static MessageResponse Success(
            string text,
            InteractiveMessage? interactive = null,

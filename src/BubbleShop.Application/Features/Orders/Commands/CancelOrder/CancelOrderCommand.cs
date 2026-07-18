@@ -7,7 +7,7 @@ namespace BubbleShop.Application.Features.Orders.Commands.CancelOrder;
 
 public sealed record CancelOrderCommand(
     string Channel,
-    string CustomerId,
+    Guid CustomerId,
     Guid BusinessId,
     Guid OrderId,
     string Reason,

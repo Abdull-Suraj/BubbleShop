@@ -184,10 +184,3 @@ public class OrderItem : BaseEntity
     }
 }
 
-public class ProductOption
-{
-    public Guid Id { get; set; } = Guid.NewGuid();
-    public string Name { get; set; } = string.Empty;
-    public string Value { get; set; } = string.Empty;
-    public decimal PriceAdjustment { get; set; }
-}

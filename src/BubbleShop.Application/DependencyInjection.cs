@@ -23,8 +23,8 @@ public static class DependencyInjection
         services.AddScoped<IMessageRouter, MessageRouter>();
         services.AddScoped<IAIAgentService, DummyAIAgentService>();
         services.AddScoped<IChannelAdapter, WhatsAppChannelAdapter>();
-        services.AddScoped<IChannelAdapter, TelegramChannelAdapter>();
-        services.AddScoped<IChannelAdapter, InstagramChannelAdapter>();
+        //services.AddScoped<IChannelAdapter, TelegramChannelAdapter>();
+        //services.AddScoped<IChannelAdapter, InstagramChannelAdapter>();
         services.AddScoped<IChannelAdapter, FacebookChannelAdapter>();
 
         // Register MediatR (CQRS)

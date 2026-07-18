@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿
 using BubbleShop.Application.Common.Models;
-using global::BubbleShop.Application.Common.Models;
+
 using MediatR;
 
 

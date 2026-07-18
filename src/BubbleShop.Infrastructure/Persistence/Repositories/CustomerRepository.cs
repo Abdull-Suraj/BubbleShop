@@ -1,4 +1,5 @@
 using BubbleShop.Domain.Entities;
+using BubbleShop.Domain.Enums;
 using BubbleShop.Domain.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -45,4 +46,15 @@ public sealed class CustomerRepository(AppDbContext dbContext) : Repository<Cust
          ))
             .OrderBy(x => x.Name)
             .ToListAsync(cancellationToken);
+
+    public async Task<Customer?> GetCustomerByIdAsync(
+    Guid customerId,
+    CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .FirstOrDefaultAsync(c =>
+                c.Id == customerId &&
+                !c.IsDeleted,
+                cancellationToken);
+    }
 }

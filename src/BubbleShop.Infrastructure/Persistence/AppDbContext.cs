@@ -25,6 +25,8 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
     public DbSet<ConversationMessage> ConversationMessages => Set<ConversationMessage>();
     public DbSet<Business> Businesses => Set<Business>();
     public DbSet<AutomationRule> AutomationRules => Set<AutomationRule>();
+    public DbSet<Cart> Carts => Set<Cart>();
+    public DbSet<CartItem> CartItems => Set<CartItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -571,22 +573,8 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
     .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // ConversationMessage Configuration
-        modelBuilder.Entity<ConversationMessage>(entity =>
-        {
-            entity.HasKey(x => x.Id);
 
-            entity.Property(x => x.Message)
-                .HasMaxLength(4000)
-                .IsRequired();
 
-            entity.Property(x => x.Sender)
-                .HasMaxLength(100)
-                .IsRequired();
-
-            entity.Property(x => x.Timestamp)
-                .IsRequired();
-        });
         // Channel Configuration
         modelBuilder.Entity<Channel>(entity =>
         {
@@ -619,6 +607,31 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
             entity.HasOne(x => x.Business)
                 .WithMany(x => x.Channels)
                 .HasForeignKey(x => x.BusinessId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        //conversation Message Configuration
+        modelBuilder.Entity<ConversationMessage>(entity =>
+        {
+            entity.HasKey(m => m.Id);
+
+            entity.Property(m => m.Message)
+                .IsRequired()
+                .HasMaxLength(4000);
+
+            entity.Property(m => m.Sender)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(m => m.IsRead)
+                .HasDefaultValue(false);
+
+            entity.Property(m => m.Timestamp)
+                .IsRequired();
+
+            entity.HasOne(m => m.Conversation)
+                .WithMany(c => c.Messages)
+                .HasForeignKey(m => m.ConversationId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
         // AutomationRule Configuration
@@ -699,6 +712,113 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
                 .HasForeignKey(ar => ar.AssociatedProductId)
                 .OnDelete(DeleteBehavior.NoAction);
         });
+
+        // Cart Configuration
+        modelBuilder.Entity<Cart>(entity =>
+        {
+        entity.HasKey(c => c.Id);
+
+        entity.Property(c => c.CustomerId)
+            .IsRequired();
+
+        entity.Property(c => c.SessionId)
+            .HasMaxLength(100);
+
+        entity.Property(c => c.Status)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        entity.Property(c => c.CouponCode)
+            .HasMaxLength(50);
+
+        entity.Property(c => c.DiscountAmount)
+            .HasPrecision(18, 2);
+
+        entity.Property(c => c.Notes)
+            .HasMaxLength(500);
+
+        entity.HasIndex(c => c.CustomerId)
+            .IsUnique();
+
+        entity.HasIndex(c => c.SessionId);
+        entity.HasIndex(c => c.Status);
+        entity.HasIndex(c => c.LastActivityAt);
+
+        // Configure CartItems as owned collection
+        entity.HasMany(c => c.Items)
+            .WithOne(i => i.Cart)
+            .HasForeignKey(i => i.CartId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        entity.HasOne(c => c.Customer)
+            .WithOne()
+            .HasForeignKey<Cart>(c => c.CustomerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+
+        });
+
+        // CartItem Configuration
+        modelBuilder.Entity<CartItem>(entity =>
+        {
+            entity.HasKey(i => i.Id);
+
+            entity.Property(i => i.ProductName)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            entity.Property(i => i.ProductSKU)
+                .HasMaxLength(100);
+
+            entity.Property(i => i.ProductImage)
+                .HasMaxLength(500);
+
+            entity.Property(i => i.ProductImageThumbnail)
+                .HasMaxLength(500);
+
+            entity.Property(i => i.Quantity)
+                .IsRequired();
+
+            entity.Property(i => i.UnitPrice)
+                .HasPrecision(18, 2);
+
+
+
+            entity.Property(i => i.ProductDescription)
+                .HasMaxLength(2000);
+
+            entity.Property(i => i.ProductCategory)
+                .HasMaxLength(100);
+
+
+
+            // Configure SelectedOptions as JSON
+            entity.OwnsMany(i => i.SelectedOptions, options =>
+            {
+                options.WithOwner().HasForeignKey("CartItemId");
+                options.Property(o => o.Id).ValueGeneratedOnAdd();
+                options.Property(o => o.Name).IsRequired().HasMaxLength(100);
+                options.Property(o => o.Value).IsRequired().HasMaxLength(100);
+                options.Property(o => o.PriceAdjustment).HasPrecision(18, 2);
+                options.ToTable("CartItemOptions");
+            });
+
+            entity.HasIndex(i => i.CartId);
+            entity.HasIndex(i => i.ProductId);
+
+            entity.HasOne(i => i.Cart)
+                .WithMany(c => c.Items)
+                .HasForeignKey(i => i.CartId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(i => i.Product)
+                .WithMany()
+                .HasForeignKey(i => i.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+
+        } );
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

@@ -1,26 +1,10 @@
 using BubbleShop.Domain.Common;
-using BubbleShop.Domain.Entities;
 
-public sealed class ConversationMessage : BaseEntity
+namespace BubbleShop.Domain.Entities;
+
+public class ConversationMessage : BaseEntity
 {
-    private ConversationMessage() { }
-
-    public ConversationMessage(
-        string message,
-        string sender,
-        bool isFromCustomer)
-    {
-        Id = Guid.NewGuid();
-
-        Message = message;
-        Sender = sender;
-        IsFromCustomer = isFromCustomer;
-        Timestamp = DateTime.UtcNow;
-    }
-
     public Guid ConversationId { get; private set; }
-
-    public Conversation Conversation { get; private set; } = null!;
 
     public string Message { get; private set; } = string.Empty;
 
@@ -28,5 +12,35 @@ public sealed class ConversationMessage : BaseEntity
 
     public bool IsFromCustomer { get; private set; }
 
+    public bool IsRead { get; private set; }
+
     public DateTime Timestamp { get; private set; }
+
+    // Navigation Property
+    public Conversation Conversation { get; private set; } = null!;
+
+    private ConversationMessage()
+    {
+    }
+
+    public ConversationMessage(
+        Guid conversationId,
+        string message,
+        string sender,
+        bool isFromCustomer)
+    {
+        Id = Guid.NewGuid();
+        ConversationId = conversationId;
+        Message = message;
+        Sender = sender;
+        IsFromCustomer = isFromCustomer;
+        Timestamp = DateTime.UtcNow;
+        IsRead = !isFromCustomer;
+    }
+
+    public void MarkAsRead()
+    {
+        IsRead = true;
+        LastModifiedAt = DateTime.UtcNow;
+    }
 }

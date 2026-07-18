@@ -1,4 +1,4 @@
-﻿namespace BubbleShop.Domain.Entities;
+﻿namespace BubbleShop.Domain.Enums;
 
 // ============ ENUMS ============
 

@@ -1,4 +1,5 @@
 ﻿using BubbleShop.Domain.Entities;
+using BubbleShop.Domain.Enums;
 
 namespace BubbleShop.Domain.Interfaces.Repositories;
 

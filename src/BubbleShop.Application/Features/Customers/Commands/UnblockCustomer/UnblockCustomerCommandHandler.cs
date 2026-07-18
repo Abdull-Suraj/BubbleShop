@@ -1,7 +1,7 @@
 ﻿
 using BubbleShop.Application.Common.Interfaces;
 using BubbleShop.Application.Common.Models;
-using BubbleShop.Domain.Entities;
+using BubbleShop.Domain.Enums;
 using BubbleShop.Domain.Interfaces.Repositories;
 using MediatR;
 using Microsoft.Extensions.Logging;

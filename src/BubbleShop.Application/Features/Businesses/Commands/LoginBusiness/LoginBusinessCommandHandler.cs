@@ -10,6 +10,7 @@ using System.Security.Claims;
 using System.Text;
 using BCrypt.Net;
 using BubbleShop.Domain.Entities;
+using BubbleShop.Domain.Enums;
 
 namespace BubbleShop.Application.Features.Businesses.Commands.LoginBusiness;
 
