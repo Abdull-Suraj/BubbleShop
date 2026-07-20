@@ -11,7 +11,7 @@ public class ProductOption
     public string Value { get; set; } = string.Empty;
     public decimal PriceAdjustment { get; set; }
 
-    public string PriceAdjustmentFormatted => PriceAdjustment != 0
+    public string? PriceAdjustmentFormatted => PriceAdjustment != 0
         ? $"{(PriceAdjustment > 0 ? "+" : "")}{PriceAdjustment:C}"
         : null;
 

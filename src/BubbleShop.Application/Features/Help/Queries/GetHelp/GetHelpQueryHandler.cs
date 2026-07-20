@@ -59,7 +59,7 @@ public sealed class GetHelpQueryHandler : IRequestHandler<GetHelpQuery, Result<M
                           $"• Just type 'help' anytime\n\n" +
                           $"How can I assist you today? 😊";
 
-            return Result<MessageResponse>.Success(new MessageResponse(response));
+            return Result<MessageResponse>.Success( MessageResponse.Success(response));
         }
         catch (Exception ex)
         {

@@ -1,6 +1,7 @@
 ﻿
 using BubbleShop.Application.Common.Interfaces;
 using BubbleShop.Domain.Entities;
+using BubbleShop.Domain.Enums;
 using BubbleShop.Domain.Interfaces.Repositories;
 using Microsoft.Extensions.Logging;
 

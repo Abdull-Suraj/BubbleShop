@@ -9,98 +9,71 @@ using Microsoft.Extensions.Logging;
 
 namespace BubbleShop.Application.Features.Orders.Commands.CancelOrder;
 
-public sealed class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Result<MessageResponse>>
+public sealed class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Result<bool>>
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<CancelOrderCommandHandler> _logger;
+    private readonly ICustomerRepository _customerRepository;
 
     public CancelOrderCommandHandler(
         IOrderRepository orderRepository,
         IUnitOfWork unitOfWork,
+        ICustomerRepository customerRepository,
         ILogger<CancelOrderCommandHandler> logger)
     {
         _orderRepository = orderRepository;
         _unitOfWork = unitOfWork;
+        _customerRepository = customerRepository;
         _logger = logger;
     }
 
-    public async Task<Result<MessageResponse>> Handle(CancelOrderCommand request, CancellationToken cancellationToken)
+    public async Task<Result<bool>> Handle(
+        CancelOrderCommand request,
+        CancellationToken cancellationToken)
     {
-        try
+        var order = await _orderRepository.GetByIdAsync(
+            request.OrderId,
+            cancellationToken);
+
+        if (order == null)
+            return Result<bool>.Failure("Order not found");
+
+
+        var customer = await _customerRepository.GetByWhatsAppNumberAsync(
+            request.ChannelUserId,
+            request.BusinessId,
+            cancellationToken);
+
+
+        if (customer == null)
         {
-            _logger.LogInformation("Cancelling order {OrderNumber} for customer {CustomerId}",
-                request.OrderId, request.CustomerId);
-
-            if (string.IsNullOrWhiteSpace(request.OrderId))
-            {
-                return Result<MessageResponse>.Failure(
-                    "Please provide the order number you want to cancel.",
-                    "ValidationError"
-                );
-            }
-
-            var order = await _orderRepository.GetByOrderNumberAsync(request.OrderId, cancellationToken);
-
-            if (order is null)
-            {
-                return Result<MessageResponse>.Failure(
-                    $"Order '{request.OrderId}' not found.",
-                    "NotFound"
-                );
-            }
-
-            // Verify customer owns this order
-            if (order.CustomerWhatsApp != request.CustomerId && order.CustomerId.ToString() != request.CustomerId)
-            {
-                return Result<MessageResponse>.Failure(
-                    "Order not found for this customer.",
-                    "Unauthorized"
-                );
-            }
-
-            // Check if order can be cancelled
-            if (order.Status == OrderStatus.Delivered || order.Status == OrderStatus.Completed)
-            {
-                return Result<MessageResponse>.Failure(
-                    "This order has already been delivered and cannot be cancelled.",
-                    "ValidationError"
-                );
-            }
-
-            if (order.Status == OrderStatus.Shipped)
-            {
-                return Result<MessageResponse>.Failure(
-                    "This order has already been shipped. Please contact support for assistance.",
-                    "ValidationError"
-                );
-            }
-
-            if (order.Status == OrderStatus.Cancelled)
-            {
-                return Result<MessageResponse>.Failure(
-                    "This order has already been cancelled.",
-                    "ValidationError"
-                );
-            }
-
-            // Cancel the order
-            order.Cancel(request.Reason);
-            await _orderRepository.UpdateAsync(order, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            var response = $"✅ **Order Cancelled**\n\n" +
-                          $"Your order #{order.OrderNumber} has been cancelled.\n" +
-                          $"Reason: {request.Reason}\n\n" +
-                          $"If you need to place a new order, just say 'I want to buy [product]'.\n\n" +
-                          $"Thank you for understanding! 🙏";
-
-            return Result<MessageResponse>.Success( MessageResponse.Success(response));
+            return Result<bool>.Failure(
+                "Customer account not found.");
         }
-        catch (Exception ex)
+
+
+        if (order.CustomerId != customer.Id)
         {
-            _logger.LogError(ex, "Error cancelling order {OrderNumber}", request.OrderId);
-            return Result<MessageResponse>.Failure($"Failed to cancel order: {ex.Message}");
+            return Result<bool>.Failure(
+                "You are not allowed to cancel this order.");
         }
+
+
+        if (!order.CanBeCancelled())
+        {
+            return Result<bool>.Failure(
+                "This order cannot be cancelled at this stage.");
+        }
+
+
+        order.Cancel(
+            request.Reason ?? "Customer requested cancellation");
+
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+
+        return Result<bool>.Success(true);
     }
 }

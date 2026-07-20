@@ -1,11 +1,13 @@
 ﻿
+using BubbleShop.Application.AppServices;
+using BubbleShop.Application.Common.Models;
 using BubbleShop.Domain.Interfaces.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BubbleShop.Application.Features.Products.Queries;
 
-public class GetProductPriceQueryHandler : IRequestHandler<GetProductPriceQuery, IActionResult>
+public class GetProductPriceQueryHandler : IRequestHandler<GetProductPriceQuery, Result<MessageResponse>>
 {
     private readonly IProductRepository _productRepository;
 
@@ -14,18 +16,27 @@ public class GetProductPriceQueryHandler : IRequestHandler<GetProductPriceQuery,
         _productRepository = productRepository;
     }
 
-    public async Task<IActionResult> Handle(GetProductPriceQuery request, CancellationToken cancellationToken)
+    public async Task<Result<MessageResponse>> Handle(
+           GetProductPriceQuery request,
+           CancellationToken cancellationToken)
     {
-        var product = await _productRepository.GetByNameAsync(request.ProductName, request.BusinessId, cancellationToken);
+        var product = await _productRepository.GetByNameAsync(
+            request.ProductName,
+            request.BusinessId,
+            cancellationToken);
 
         if (product == null)
-            return new NotFoundObjectResult(new { message = $"Product '{request.ProductName}' not found" });
-
-        return new OkObjectResult(new
         {
-            ProductName = product.Name,
-            Price = product.Price,
-            StockQuantity = product.StockQuantity
-        });
+            return Result<MessageResponse>.Failure(
+                $"Product '{request.ProductName}' not found",
+                "NotFound");
+        }
+
+        return Result<MessageResponse>.Success(
+            MessageResponse.Success(
+                $"🛍️ {product.Name}\n" +
+                $"💰 Price: {product.Price:C}\n" +
+                $"📦 Stock: {product.StockQuantity}"
+            ));
     }
 }

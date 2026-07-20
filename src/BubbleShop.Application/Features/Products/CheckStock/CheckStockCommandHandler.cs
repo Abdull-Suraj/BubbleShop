@@ -85,7 +85,7 @@ public sealed class CheckStockCommandHandler : IRequestHandler<CheckStockCommand
                 response += $"\nWould you like to order this? Reply `ORDER {product.Name}`.";
             }
 
-            return Result<MessageResponse>.Success(new MessageResponse(response));
+            return Result<MessageResponse>.Success(MessageResponse.Success(response));
         }
         catch (Exception ex)
         {

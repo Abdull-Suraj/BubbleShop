@@ -154,15 +154,24 @@ public class CartRepository : Repository<Cart>, ICartRepository
             .CountAsync(c => c.Status == CartStatus.Active && !c.IsDeleted, cancellationToken);
     }
 
-    public async Task<Dictionary<Guid, int>> GetCartCountsByBusinessAsync(CancellationToken cancellationToken = default)
+    public async Task<Dictionary<Guid, int>> GetCartCountsByBusinessAsync(
+        CancellationToken cancellationToken = default)
     {
-        var carts = await _dbSet
+        return await _dbSet
             .Include(c => c.Customer)
-            .Where(c => c.Status == CartStatus.Active && !c.IsDeleted)
-            .ToListAsync(cancellationToken);
-
-        return carts
-            .GroupBy(c => c.Customer.BusinessId)
-            .ToDictionary(g => g.Key, g => g.Count());
+            .Where(c =>
+                c.Status == CartStatus.Active &&
+                !c.IsDeleted &&
+                c.Customer.BusinessId.HasValue)
+            .GroupBy(c => c.Customer.BusinessId!.Value)
+            .Select(g => new
+            {
+                BusinessId = g.Key,
+                Count = g.Count()
+            })
+            .ToDictionaryAsync(
+                x => x.BusinessId,
+                x => x.Count,
+                cancellationToken);
     }
 }

@@ -39,6 +39,12 @@ public sealed class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, 
     await _productRepository.GetByIdAsync(
         request.ProductId,
         cancellationToken);
+            if (product is null)
+            {
+                return Result<MessageResponse>.Failure(
+                    "Product not found.",
+                    "NotFound");
+            }
             _logger.LogInformation("Adding {Quantity} of {ProductName} to cart for customer {CustomerId}",
                 request.Quantity, product.Name, request.CustomerId);
 
@@ -51,10 +57,9 @@ public sealed class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, 
             }
 
             // Get customer
-            var customer = await _customerRepository.GetByWhatsAppNumberAsync(
-                request.CustomerId,
-                request.BusinessId,
-                cancellationToken);
+            var customer = await _customerRepository.GetByIdAsync(
+       request.CustomerId,
+       cancellationToken);
 
             if (customer is null)
             {
@@ -105,7 +110,7 @@ public sealed class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, 
                           $"• `CHECKOUT` - Proceed to checkout\n" +
                           $"• `ORDER {product.Name}` - Order now";
 
-            return Result<MessageResponse>.Success(response);
+            return Result<MessageResponse>.Success(MessageResponse.Success(response));
         }
         catch (Exception ex)
         {
@@ -113,6 +118,12 @@ public sealed class AddToCartCommandHandler : IRequestHandler<AddToCartCommand, 
 await _productRepository.GetByIdAsync(
 request.ProductId,
 cancellationToken);
+            if (product is null)
+            {
+                return Result<MessageResponse>.Failure(
+                    "Product not found.",
+                    "NotFound");
+            }
             _logger.LogInformation("Adding {Quantity} of {ProductName} to cart for customer {CustomerId}",
                 request.Quantity, product.Name, request.CustomerId);
             _logger.LogError(ex, "Error adding {Quantity} of {ProductName} to cart", request.Quantity, product.Name);

@@ -2,7 +2,7 @@
 
 namespace BubbleShop.Domain.Interfaces.Repositories
 {
-    public interface ICartRepository
+    public interface ICartRepository : IRepository<Cart>
     {
         Task<Cart?> GetByCustomerIdAsync(Guid customerId, CancellationToken cancellationToken = default);
         Task<Cart> GetOrCreateCartAsync(Guid customerId, CancellationToken cancellationToken = default);
@@ -16,5 +16,6 @@ namespace BubbleShop.Domain.Interfaces.Repositories
         Task<bool> RemoveExpiredCartsAsync(DateTime olderThan, CancellationToken cancellationToken = default);
         Task<int> GetActiveCartCountAsync(CancellationToken cancellationToken = default);
         Task<Dictionary<Guid, int>> GetCartCountsByBusinessAsync(CancellationToken cancellationToken = default);
+
     }
 }

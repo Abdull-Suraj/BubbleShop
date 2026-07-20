@@ -35,10 +35,9 @@ public sealed class ProvideFeedbackCommandHandler : IRequestHandler<ProvideFeedb
             _logger.LogInformation("Received feedback from customer {CustomerId}", request.CustomerId);
 
             // Get customer
-            var customer = await _customerRepository.GetByWhatsAppNumberAsync(
-                request.CustomerId,
-                request.BusinessId,
-                cancellationToken);
+            var customer = await _customerRepository.GetByIdAsync(
+           request.CustomerId,
+           cancellationToken);
 
             if (customer is null)
             {
@@ -49,16 +48,13 @@ public sealed class ProvideFeedbackCommandHandler : IRequestHandler<ProvideFeedb
             }
 
             // Create feedback
-            var feedback = new Feedback
-            {
-                Id = Guid.NewGuid(),
-                CustomerId = customer.Id,
-                BusinessId = request.BusinessId,
-                Channel = request.Channel,
-                Rating = request.Rating,
-                FeedbackText = request.Feedback,
-                CreatedAt = DateTime.UtcNow
-            };
+            var feedback = new BubbleShop.Domain.Entities.Feedback(
+                customerId: customer.Id,
+                businessId: request.BusinessId,
+                rating: request.Rating,
+                comment: request.Feedback,
+                channel: request.Channel
+            );
 
             await _feedbackRepository.AddAsync(feedback, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

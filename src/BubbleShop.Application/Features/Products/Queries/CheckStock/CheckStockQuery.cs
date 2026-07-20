@@ -1,11 +1,12 @@
 ﻿
+using BubbleShop.Application.AppServices;
+using BubbleShop.Application.Common.Models;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
+
 
 namespace BubbleShop.Application.Features.Products.Queries;
 
-public class CheckStockQuery : IRequest<IActionResult>
-{
-    public string ProductName { get; set; } = string.Empty;
-    public Guid BusinessId { get; set; }
-}
+public sealed record CheckStockQuery(
+    Guid BusinessId,
+    string ProductName
+) : IRequest<Result<MessageResponse>>;

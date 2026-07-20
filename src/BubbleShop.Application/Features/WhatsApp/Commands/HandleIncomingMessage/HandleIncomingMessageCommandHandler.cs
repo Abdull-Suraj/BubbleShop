@@ -34,12 +34,13 @@ public sealed class HandleIncomingMessageCommandHandler(
             return Result<string>.Failure("Customer not found.");
         }
         var existingConversation = await conversationRepository.GetByWhatsAppNumberAsync(request.FromNumber, cancellationToken);
-         var conversation = existingConversation ??
-    new Conversation(
-        request.BusinessId,
-        customer.Id,
-        customer.WhatsAppNumber,
-        customer.Name);
+        var conversation = existingConversation ??
+   new Conversation(
+       request.BusinessId,
+       customer.Id,
+       customer.WhatsAppNumber,
+       customer.Name,
+       "whatsapp");
         var history = conversation.ToChatHistory();
         history.Add(new ChatMessage { Role = ChatRole.User, Content = request.MessageText, Timestamp = DateTime.UtcNow });
 
@@ -49,7 +50,10 @@ public sealed class HandleIncomingMessageCommandHandler(
             return Result<string>.Failure(aiResult.Error ?? "Unable to process message.");
         }
 
-        conversation.AddCustomerMessage(request.MessageText);
+        conversation.AddMessage(
+    request.MessageText,
+    customer.Name,
+    true);
 
         if (existingConversation is null)
         {

@@ -83,7 +83,7 @@ public class SendMessageRequest
 public class ProcessMessageRequest
 {
     public string UserId { get; set; } = string.Empty;
-    public string BusinessId { get; set; } = string.Empty;
+    public Guid BusinessId { get; set; }
     public string Message { get; set; } = string.Empty;
     public Dictionary<string, string> Metadata { get; set; } = new();
 }

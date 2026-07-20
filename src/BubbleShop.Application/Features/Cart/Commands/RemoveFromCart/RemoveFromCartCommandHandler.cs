@@ -27,85 +27,76 @@ public sealed class RemoveFromCartCommandHandler : IRequestHandler<RemoveFromCar
         _logger = logger;
     }
 
-    public async Task<Result<MessageResponse>> Handle(RemoveFromCartCommand request, CancellationToken cancellationToken)
+    public async Task<Result<MessageResponse>> Handle(
+       RemoveFromCartCommand request,
+       CancellationToken cancellationToken)
     {
         try
         {
-            _logger.LogInformation("Removing {ProductName} from cart for customer {CustomerId}",
-                request.ProductName, request.CustomerId);
+            _logger.LogInformation(
+                "Removing cart item {CartItemId} for customer {CustomerId}",
+                request.CartItemId,
+                request.CustomerId);
 
-            if (string.IsNullOrWhiteSpace(request.ProductName))
-            {
-                return Result<MessageResponse>.Failure(
-                    "Please specify which product you want to remove from your cart.",
-                    "ValidationError"
-                );
-            }
 
-            // Get customer
-            var customer = await _customerRepository.GetByWhatsAppNumberAsync(
+            var customer = await _customerRepository.GetByIdAsync(
                 request.CustomerId,
-                request.BusinessId,
                 cancellationToken);
+
 
             if (customer is null)
             {
                 return Result<MessageResponse>.Failure(
                     "Customer not found.",
-                    "NotFound"
-                );
+                    "NotFound");
             }
 
-            // Get cart
-            var cart = await _cartRepository.GetByCustomerIdAsync(customer.Id, cancellationToken);
+
+            var cart = await _cartRepository.GetByCustomerIdAsync(
+                customer.Id,
+                cancellationToken);
+
 
             if (cart is null || !cart.Items.Any())
             {
                 return Result<MessageResponse>.Failure(
-                    "Your cart is already empty! 🛒",
-                    "ValidationError"
-                );
+                    "Your cart is empty 🛒",
+                    "ValidationError");
             }
 
-            // Remove item
-            var removed = cart.RemoveItem(request.ProductId);
+
+            var removed = cart.RemoveItem(request.CartItemId);
+
 
             if (!removed)
             {
                 return Result<MessageResponse>.Failure(
-                    $"'{request.ProductName}' not found in your cart.",
-                    "NotFound"
-                );
+                    "Item was not found in your cart.",
+                    "NotFound");
             }
 
-            await _cartRepository.UpdateAsync(cart, cancellationToken);
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var cartTotal = cart.GetTotal();
-            var itemCount = cart.GetTotalItems();
 
-            if (itemCount == 0)
-            {
-                return Result<MessageResponse>.Success(new MessageResponse(
-                    $"✅ **Cart Updated**\n\n" +
-                    $"Removed '{request.ProductName}' from your cart.\n" +
-                    $"Your cart is now empty. 🛒\n\n" +
-                    $"Reply `MENU` to browse products."
-                ));
-            }
+            var response =
+                $"✅ **Cart Updated**\n\n" +
+                $"Item removed successfully.\n" +
+                $"🛒 Remaining Items: {cart.GetTotalItems()}\n" +
+                $"💰 Total: {cart.GetTotal():C}";
 
-            var response = $"✅ **Cart Updated**\n\n" +
-                          $"Removed '{request.ProductName}' from your cart.\n" +
-                          $"📦 **Cart Total:** {cartTotal:C}\n" +
-                          $"🛒 **Items in Cart:** {itemCount}\n\n" +
-                          $"Reply `VIEW CART` to see your cart.";
 
-            return Result<MessageResponse>.Success(new MessageResponse(response));
+            return Result<MessageResponse>.Success(
+                MessageResponse.Success(response));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error removing {ProductName} from cart", request.ProductName);
-            return Result<MessageResponse>.Failure($"Failed to remove from cart: {ex.Message}");
+            _logger.LogError(ex,
+                "Error removing cart item {CartItemId}",
+                request.CartItemId);
+
+            return Result<MessageResponse>.Failure(
+                $"Failed to remove item: {ex.Message}");
         }
     }
 }

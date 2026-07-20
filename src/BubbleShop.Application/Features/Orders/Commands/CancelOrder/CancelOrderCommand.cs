@@ -6,10 +6,9 @@ using MediatR;
 namespace BubbleShop.Application.Features.Orders.Commands.CancelOrder;
 
 public sealed record CancelOrderCommand(
-    string Channel,
-    Guid CustomerId,
-    Guid BusinessId,
     Guid OrderId,
-    string Reason,
-    string Message
-) : IRequest<Result<MessageResponse>>;
+    Guid BusinessId,
+    string ChannelUserId,
+    string Channel,
+    string? Reason
+) : IRequest<Result<bool>>;

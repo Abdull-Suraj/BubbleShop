@@ -10,5 +10,8 @@ public sealed record ContactSupportCommand(
     Guid CustomerId,
     string CustomerName,
     Guid BusinessId,
-    string Message
+    string Message,
+    string? CustomerWhatsApp = null,
+    string? CustomerPhone = null,
+    string? CustomerEmail = null
 ) : IRequest<Result<MessageResponse>>;

@@ -80,7 +80,7 @@ public sealed class TrackOrderCommandHandler : IRequestHandler<TrackOrderCommand
 
             response += $"\n💬 Reply `MENU` to see other options.";
 
-            return Result<MessageResponse>.Success(new MessageResponse(response));
+            return Result<MessageResponse>.Success( MessageResponse.Success(response));
         }
         catch (Exception ex)
         {

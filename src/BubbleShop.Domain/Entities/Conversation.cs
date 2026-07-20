@@ -1,5 +1,6 @@
 // Domain/Entities/Conversation.cs
 using BubbleShop.Domain.Common;
+using BubbleShop.Domain.Enums;
 
 namespace BubbleShop.Domain.Entities;
 
@@ -24,17 +25,27 @@ public class Conversation : BaseEntity
 
     private Conversation() { }
 
-    public Conversation(Guid businessId, string whatsAppNumber, string? customerName = null, string channel = "whatsapp")
+    public Conversation(
+        Guid businessId,
+        Guid customerId,
+        string whatsAppNumber,
+        string? customerName = null,
+        string channel = "whatsapp")
     {
         Id = Guid.NewGuid();
+
         BusinessId = businessId;
+        CustomerId = customerId;
         WhatsAppNumber = whatsAppNumber;
         CustomerName = customerName ?? "Customer";
         Channel = channel;
+
         Status = ConversationStatus.Active;
         Messages = new List<ConversationMessage>();
+
         CreatedAt = DateTime.UtcNow;
         LastMessageAt = DateTime.UtcNow;
+
         UnreadCount = 0;
         Metadata = new Dictionary<string, string>();
     }
@@ -82,6 +93,22 @@ public class Conversation : BaseEntity
     {
         Metadata[key] = value;
         LastModifiedAt = DateTime.UtcNow;
+    }
+    public List<ChatMessage> ToChatHistory()
+    {
+        return Messages
+            .OrderBy(m => m.CreatedAt)
+            .Select(m => new ChatMessage
+            {
+                Role = m.IsFromCustomer
+                    ? ChatRole.User
+                    : ChatRole.Assistant,
+
+                Content = m.Message,
+
+                Timestamp = m.CreatedAt
+            })
+            .ToList();
     }
 }
 

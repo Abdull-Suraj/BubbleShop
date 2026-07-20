@@ -44,16 +44,17 @@ public sealed class ContactSupportCommandHandler : IRequestHandler<ContactSuppor
             {
                 return Result<MessageResponse>.Failure("Customer not found.");
             }
+
             if (customer is null)
             {
-                // Create customer if not exists
                 customer = new Customer(
                     businessId: request.BusinessId,
-                    name: request.CustomerName ?? "Valued",
-                    whatsappNumber: customer.WhatsAppNumber,
-                    phoneNumber: customer.PhoneNumber,
-                    email: null
+                    name: request.CustomerName ?? "Valued Customer",
+                    whatsappNumber: request.CustomerWhatsApp ?? string.Empty,
+                    phoneNumber: request.CustomerPhone ?? string.Empty,
+                    email: request.CustomerEmail
                 );
+
                 await _customerRepository.AddAsync(customer, cancellationToken);
             }
 

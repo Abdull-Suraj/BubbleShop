@@ -46,4 +46,8 @@
 		<ProjectReference Include="..\BubbleShop.Domain\BubbleShop.Domain.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Features\Orders\Commands\NewFolder\" />
+	</ItemGroup>
+
 </Project>

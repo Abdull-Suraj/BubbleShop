@@ -1,9 +1,11 @@
 ﻿
 using BubbleShop.Application.Common.Interfaces;
 using BubbleShop.Application.Common.Models;
+using BubbleShop.Application.DTOs;
 using BubbleShop.Application.Features.Messages.Commands.ProcessCustomerMessage;
 using BubbleShop.Domain.Common;
 using BubbleShop.Domain.Entities;
+using BubbleShop.Domain.Exceptions;
 using BubbleShop.Domain.Interfaces.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -94,10 +96,19 @@ public class MessageRouter : IMessageRouter
         }
     }
 
-    private async Task<Business?> DetectBusinessAsync(MessageContext context, CancellationToken cancellationToken)
+    private async Task<Business?> DetectBusinessAsync(
+        MessageContext context,
+        CancellationToken cancellationToken)
     {
-        var businessId = Guid.Parse(context.BusinessId);
-        return await _businessRepository.GetByIdAsync(businessId, cancellationToken);
+        if (
+            context.BusinessId == Guid.Empty)
+        {
+            return null;
+        }
+
+        return await _businessRepository.GetByIdAsync(
+            context.BusinessId,
+            cancellationToken);
     }
 
     private async Task<Customer> GetOrCreateCustomerAsync(MessageContext context, Guid businessId, CancellationToken cancellationToken)
@@ -128,9 +139,11 @@ public class MessageRouter : IMessageRouter
 
     private async Task<Conversation> GetOrCreateConversationAsync(MessageContext context, Guid customerId, CancellationToken cancellationToken)
     {
+        var businessId = GetBusinessId(context);
+
         var conversation = await _conversationRepository.GetByCustomerAndChannelAsync(
             context.ChannelUserId,
-            Guid.Parse(context.BusinessId),
+            businessId,
             context.Channel.ToString(),
             cancellationToken);
 
@@ -138,7 +151,8 @@ public class MessageRouter : IMessageRouter
             return conversation;
 
         var newConversation = new Conversation(
-            businessId: Guid.Parse(context.BusinessId),
+            businessId: businessId,
+            customerId: customerId,
             whatsAppNumber: context.ChannelUserId,
             customerName: context.Metadata?.GetValueOrDefault("CustomerName") ?? "Customer",
             channel: context.Channel.ToString()
@@ -149,36 +163,57 @@ public class MessageRouter : IMessageRouter
     }
 
     private async Task<string> GenerateResponseAsync(
-        IntentResult intent,
-        MessageContext context,
-        Result<MessageResponse> result,
-        CancellationToken cancellationToken)
+    IntentResult intent,
+    MessageContext context,
+    object result,
+    CancellationToken cancellationToken)
     {
-        if (!string.IsNullOrEmpty(intent.ResponseMessage))
-            return intent.ResponseMessage;
-
-        return intent.Intent switch
+        switch (result)
         {
-            Intent.CreateOrder => "Great! Let me help you create that order. What would you like to buy? 🛒",
-            Intent.SearchProduct => "Let me search for products for you! What are you looking for? 🔍",
-            Intent.GetProductPrice => "Let me check the price for you. Which product are you interested in? 💰",
-            Intent.TrackOrder => "I'll help you track your order. Please provide your order number. 🚚",
-            Intent.GetHelp => "I can help you with orders, prices, products, and tracking. What would you like to do? 😊",
-            _ => "How can I help you today? 😊"
-        };
-    }
+            case Result<MessageResponse> messageResult:
+                return messageResult.IsSuccess
+                    ? messageResult.Value.Text
+                    : messageResult.Error ?? "An error occurred.";
 
-    private InteractiveMessage? BuildInteractiveResponse(IntentResult intent, IActionResult result, string text)
-    {
-        if (intent.SuggestedResponses.Any())
-        {
-            return new InteractiveMessage
-            {
-                Text = text,
-                QuickReplies = intent.SuggestedResponses.Take(5).ToList()
-            };
+            case Result<Guid> orderResult:
+                return orderResult.IsSuccess
+                    ? $"✅ Order created successfully.\nOrder ID: {orderResult.Value}"
+                    : orderResult.Error ?? "Unable to create order.";
+
+            case Result<PagedResult<ProductDto>> searchResult:
+                // format products
+                break;
         }
 
-        return null;
+        return "Unknown response.";
+    }
+    private InteractiveMessage? BuildInteractiveResponse(
+    IntentResult intent,
+    object result,
+    string text)
+    {
+        if (intent.SuggestedResponses == null ||
+            !intent.SuggestedResponses.Any())
+        {
+            return null;
+        }
+
+        return new InteractiveMessage
+        {
+            Text = text,
+            QuickReplies = intent.SuggestedResponses
+                .Take(5)
+                .ToList()
+        };
+    }
+    private static Guid GetBusinessId(MessageContext context)
+    {
+        if (
+            context.BusinessId == Guid.Empty)
+        {
+            throw new DomainException("Business id is required.");
+        }
+
+        return context.BusinessId;
     }
 }

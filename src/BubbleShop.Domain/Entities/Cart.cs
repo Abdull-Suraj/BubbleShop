@@ -168,7 +168,7 @@ public class Cart : BaseEntity
         LastModifiedAt = DateTime.UtcNow;
     }
 
-    public void UpdateSessionId(string sessionId)
+    public void UpdateSessionId(string? sessionId)
     {
         SessionId = sessionId;
         LastModifiedAt = DateTime.UtcNow;

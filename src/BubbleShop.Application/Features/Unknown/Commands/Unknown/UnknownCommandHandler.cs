@@ -42,7 +42,7 @@ public sealed class UnknownCommandHandler : IRequestHandler<UnknownCommand, Resu
                           $"• 'What can you do?'\n\n" +
                           $"😊 **Try rephrasing your message** and I'll do my best to help!";
 
-            return Result<MessageResponse>.Success(new MessageResponse(response));
+            return Result<MessageResponse>.Success(MessageResponse.Success(response));
         }
         catch (Exception ex)
         {

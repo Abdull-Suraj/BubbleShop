@@ -64,13 +64,10 @@ public sealed class CheckoutCommandHandler : IRequestHandler<CheckoutCommand, Re
                           $"📦 **Orders:** {orderNumbers}\n" +
                           $"💰 **Total Amount:** {totalAmount::N2}\n\n" +
                           $"🔐 **Payment Options:**\n" +
-                          $"1. Pay with Card (Stripe)\n" +
-                          $"2. Pay with Mobile Money (Flutterwave)\n" +
-                          $"3. Cash on Delivery\n\n" +
+                          $"2. Pay with Mobile Transfer (Flutterwave)\n" +
                           $"Reply with your preferred payment method:\n" +
                           $"• `PAY CARD` - Pay with Credit/Debit Card\n" +
-                          $"• `PAY MOBILE` - Pay with Mobile Money\n" +
-                          $"• `PAY COD` - Cash on Delivery\n\n" +
+                          $"• `PAY MOBILE` - Pay with Mobile Transfer\n" +
                           $"Or reply `CANCEL` to cancel the checkout.";
 
           

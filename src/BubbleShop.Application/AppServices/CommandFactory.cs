@@ -1,11 +1,13 @@
-﻿using BubbleShop.Application.Common.Interfaces;
+﻿using BubbleShop.Application.Common.Commands;
+using BubbleShop.Application.Common.Interfaces;
 using BubbleShop.Application.Common.Models;
-using BubbleShop.Application.Common.Commands;
 using BubbleShop.Application.Features.Cart.Commands.AddToCart;
 using BubbleShop.Application.Features.Cart.Commands.RemoveFromCart;
 using BubbleShop.Application.Features.Cart.Queries.GetCart;
+using BubbleShop.Application.Features.Orders.Commands.CancelOrder;
 using BubbleShop.Application.Features.Orders.Commands.Checkout;
 using BubbleShop.Application.Features.Orders.Commands.CreateOrder;
+using BubbleShop.Application.Features.Products.Commands.SearchProducts;
 using BubbleShop.Application.Features.Products.Queries;
 using BubbleShop.Application.Features.Products.Queries.SearchProducts;
 using BubbleShop.Domain.Common;
@@ -22,15 +24,37 @@ public sealed class CommandFactory : ICommandFactory
     private readonly IProductRepository _productRepository;
     private readonly ICustomerRepository _customerRepository;
     private readonly ILogger<CommandFactory> _logger;
+    private readonly IOrderRepository _orderRepository;
 
     public CommandFactory(
         IProductRepository productRepository,
         ICustomerRepository customerRepository,
+        IOrderRepository orderRepository,
         ILogger<CommandFactory> logger)
     {
         _productRepository = productRepository;
         _customerRepository = customerRepository;
+        _orderRepository = orderRepository;
         _logger = logger;
+    
+        
+    }
+
+    private async Task<SearchProductsCommand> CreateSearchProductsCommand(
+    IntentResult intent,
+    MessageContext context,
+    CancellationToken cancellationToken)
+    {
+        var customerId = await GetOrCreateCustomerId(
+            context,
+            cancellationToken);
+
+        return new SearchProductsCommand(
+            BusinessId: GetBusinessId(context),
+            CustomerId: customerId,
+            Keyword: intent.Parameters
+                        .GetValueOrDefault("SearchTerm")
+                        ?.ToString() ?? string.Empty);
     }
 
     public async Task<IBaseRequest> CreateCommandAsync(
@@ -50,7 +74,10 @@ public sealed class CommandFactory : ICommandFactory
                     await CreateOrderCommand(intent, context, cancellationToken),
 
                 Intent.SearchProduct =>
-                    CreateSearchProductCommand(intent, context),
+                       await CreateSearchProductsCommand(
+                           intent,
+                           context,
+                           cancellationToken),
 
                 Intent.GetProductPrice =>
                     CreateGetProductPriceCommand(intent, context),
@@ -88,12 +115,13 @@ public sealed class CommandFactory : ICommandFactory
 
     private static Guid GetBusinessId(MessageContext context)
     {
-        if (!Guid.TryParse(context.BusinessId, out var id))
-            throw new DomainException("Invalid business id.");
+        if (context.BusinessId == Guid.Empty)
+        {
+            throw new DomainException("Business id is required.");
+        }
 
-        return id;
+        return context.BusinessId;
     }
-
     private async Task<Guid> GetOrCreateCustomerId(
         MessageContext context,
         CancellationToken cancellationToken)
@@ -146,7 +174,13 @@ public sealed class CommandFactory : ICommandFactory
                 cancellationToken);
 
         var productName =
-            intent.Parameters["ProductName"].ToString()!;
+            intent.Parameters
+                .GetValueOrDefault("ProductName")
+                ?.ToString();
+        if (string.IsNullOrWhiteSpace(productName))
+        {
+            throw new DomainException("Product name is required.");
+        }
 
         var quantity =
             intent.Parameters.TryGetValue("Quantity", out var qty)
@@ -191,27 +225,26 @@ public sealed class CommandFactory : ICommandFactory
     }
 
     private GetProductPriceQuery CreateGetProductPriceCommand(
-        IntentResult intent,
-        MessageContext context)
+       IntentResult intent,
+       MessageContext context)
     {
-        return new GetProductPriceQuery
-        {
-            BusinessId = GetBusinessId(context),
-            ProductName =
-                intent.Parameters.GetValueOrDefault("ProductName")?.ToString() ?? ""
-        };
+        return new GetProductPriceQuery(
+            GetBusinessId(context),
+            intent.Parameters
+                .GetValueOrDefault("ProductName")
+                ?.ToString() ?? string.Empty
+        );
     }
-
     private CheckStockQuery CreateCheckStockCommand(
         IntentResult intent,
         MessageContext context)
     {
-        return new CheckStockQuery
-        {
-            BusinessId = GetBusinessId(context),
-            ProductName =
-                intent.Parameters.GetValueOrDefault("ProductName")?.ToString() ?? ""
-        };
+        return new CheckStockQuery(
+            GetBusinessId(context),
+            intent.Parameters
+                .GetValueOrDefault("ProductName")
+                ?.ToString() ?? string.Empty
+        );
     }
 
     private async Task<GetCartQuery> CreateViewCartCommand(
@@ -229,6 +262,39 @@ public sealed class CommandFactory : ICommandFactory
         );
     }
 
+    private async Task<CancelOrderCommand> CreateCancelOrderCommand(
+    IntentResult intent,
+    MessageContext context,
+    CancellationToken cancellationToken)
+    {
+        if (!context.CustomerId.HasValue)
+        {
+            throw new DomainException("Customer not found.");
+        }
+
+        var order =
+            await _orderRepository.GetLatestPendingOrderAsync(
+                context.CustomerId.Value,
+                cancellationToken);
+
+        if (order == null)
+        {
+            throw new DomainException("No pending order found.");
+        }
+        var reason =
+            intent.Parameters
+            .GetValueOrDefault("Reason")
+            ?.ToString();
+
+
+        return new CancelOrderCommand(
+            OrderId: order.Id,
+            BusinessId: context.BusinessId,
+            ChannelUserId: context.ChannelUserId,
+            Channel: context.Channel.ToString(),
+            Reason: reason
+        );
+    }
     private async Task<AddToCartCommand> CreateAddToCartCommand(
         IntentResult intent,
         MessageContext context,
@@ -320,36 +386,30 @@ public sealed class CommandFactory : ICommandFactory
         MessageContext context,
         CancellationToken cancellationToken)
     {
-        return new CheckoutCommand
-        {
-            CustomerId =
-                await GetOrCreateCustomerId(context, cancellationToken),
+        var customerId = await GetOrCreateCustomerId(context, cancellationToken);
+        var businessId = GetBusinessId(context);
 
-            BusinessId =
-                GetBusinessId(context),
-
-            Channel =
-                context.Channel.ToString()
-        };
+        return new CheckoutCommand(
+            customerId,
+            businessId,
+            context.Channel.ToString()
+        );
     }
 
     private GetStoreHoursQuery CreateGetStoreHoursCommand(
         MessageContext context)
     {
-        return new GetStoreHoursQuery
-        {
-            BusinessId = GetBusinessId(context)
-        };
+        return new GetStoreHoursQuery(
+            GetBusinessId(context)
+        );
     }
 
     private UnknownIntentCommand CreateUnknownIntentCommand(
         IntentResult intent)
     {
-        return new UnknownIntentCommand
-        {
-            Message = intent.RawMessage,
-            SuggestedResponse =
-                "Sorry, I didn't understand that request."
-        };
+        return new UnknownIntentCommand(
+            intent.RawMessage,
+            "Sorry, I didn't understand that request."
+        );
     }
 }
