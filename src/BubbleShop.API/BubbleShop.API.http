@@ -3,14 +3,14 @@
 ### ============================================
 ### Environment Variables
 @baseUrl = http://localhost:5088
-@businessId = 4b491c15-ff5b-4547-8eb9-b4a7b37ac55c
+@businessId = 4B491C15-FF5B-4547-8EB9-B4A7B37AC55C
+# @businessId = 48002b23-1c61-4e28-9ff4-c125bd932428
 @customerId = fb026453-c2c1-487f-b785-a3494631ebca
-@productId = bed5d561-088e-40fd-ba8e-63efcf81a31e
+@productId = e76eb5c0-3e49-4440-9cef-fc9f003d33d7
 @orderId = 5d3b0c69-9c6a-43e7-8268-a58bb7a728d2
 @orderNumber = ORD-2026
 @whatsAppNumber = "+2348162647009"
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjRiNDkxYzE1LWZmNWItNDU0Ny04ZWI5LWI0YTdiMzdhYzU1YyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJaZW5naSBUZWNobm9sb2dpZXMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ1cGRhdGVkQHN0b3JlLmNvbSIsIndoYXRzYXBwTnVtYmVyIjoiKzE1NTUxMjM0NTY3IiwianRpIjoiZjUzZWQyMTItMzcxMC00YTU4LThkYmEtNDc0YTZjODRkODVjIiwiZXhwIjoxNzg0MTIyMTE0LCJpc3MiOiJCdWJibGVTaG9wIiwiYXVkIjoiQnViYmxlU2hvcEFQSSJ9.BAelOMjh2akDa0NrCFuksSp_Y6w6bc0RV_EafGHPvmA,
-# @whatsappNumber = +1234567890
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjQ4MDAyYjIzLTFjNjEtNGUyOC05ZmY0LWMxMjViZDkzMjQyOCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJUZXN0IFN0b3JlIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZW1haWxhZGRyZXNzIjoidGVzdEBzdG9yZS5jb20iLCJ3aGF0c2FwcE51bWJlciI6IisyMzQ5MDY3NzQ4NTgyIiwianRpIjoiMGY1NWExNmUtYjViMC00MjA2LTkxMmYtM2E2MDZiNjAwN2E0IiwiZXhwIjoxNzg0NjI5NTk2LCJpc3MiOiJCdWJibGVTaG9wIiwiYXVkIjoiQnViYmxlU2hvcEFQSSJ9.JGCdRw0IrfPNmVVMXsVn-pT_ZkkoBHYVbXYcwRuTxuI
 # @transactionReference = YOUR_TRANSACTION_REFERENCE
 
 ### ============================================
@@ -23,10 +23,10 @@ Content-Type: application/json
 
 {
   "businessName": "Test Store",
-  "email": "test@store.com",
-  "whatsAppNumber": "+15551234567",
+  "email": "sample@test.com",
+  "whatsAppNumber": "+2349067748582",
   "password": "SecurePass123!",
-  "phoneNumber": "+15551234567",
+  "phoneNumber": "+2349067748582",
   "address": "123 Main St, City",
   "legalName": "Test Store LLC"
 }
@@ -50,10 +50,10 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "businessName": "Updated Store Name",
-  "email": "updated@store.com",
-  "whatsAppNumber": "+15551234567",
-  "phoneNumber": "+15551234567",
+  "businessName": "Updated Store Name new",
+  "email": "updated@storenew.com",
+  "whatsAppNumber": "+15551234590",
+  "phoneNumber": "+15551234590",
   "address": "789 New Address, City",
   "legalName": "Updated Legal Name LLC"
 }
@@ -122,7 +122,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "newQuantity": 75
+  "Quantity": 75
 }
 
 ### 2.9 Activate Product
@@ -169,7 +169,7 @@ GET {{baseUrl}}/api/customers/{{customerId}}
 Authorization: Bearer {{token}}
 
 ### 3.4 Get Customer by WhatsApp
-GET {{baseUrl}}/api/customers/by-whatsapp/{{whatsappNumber}}?businessId={{businessId}}
+GET {{baseUrl}}/api/customers/by-whatsapp/{{whatsAppNumber}}?businessId={{businessId}}
 
 ### 3.5 Block Customer
 POST {{baseUrl}}/api/customers/{{customerId}}/block
@@ -282,7 +282,7 @@ POST {{baseUrl}}/api/whatsapp/message
 Content-Type: application/json
 
 {
-  "from": "{{whatsappNumber}}",
+  "from": "+2349067748582",
   "to": "+15551234567",
   "businessId": "{{businessId}}",
   "customerName": "John Doe",
@@ -294,7 +294,7 @@ POST {{baseUrl}}/api/whatsapp/order
 Content-Type: application/json
 
 {
-  "customerWhatsApp": "{{whatsappNumber}}",
+  "customerWhatsApp": "+2349067748582",
   "customerName": "John Doe",
   "businessWhatsApp": "+15551234567",
   "message": "I want to buy 2 bags of rice"
@@ -351,7 +351,7 @@ POST {{baseUrl}}/api/whatsapp/message
 Content-Type: application/json
 
 {
-  "from": "{{whatsappNumber}}",
+  "from": "+2349067748582",
   "to": "+15551234567",
   "businessId": "{{businessId}}",
   "customerName": "John Doe",
@@ -363,7 +363,7 @@ POST {{baseUrl}}/api/whatsapp/message
 Content-Type: application/json
 
 {
-  "from": "{{whatsappNumber}}",
+  "from": "+2349067748582",
   "to": "+15551234567",
   "businessId": "{{businessId}}",
   "customerName": "John Doe",
@@ -393,24 +393,7 @@ verif-hash: your_webhook_secret
   }
 }
 
-### 8.2 Stripe Webhook
-POST {{baseUrl}}/api/webhooks/stripe
-Content-Type: application/json
-Stripe-Signature: t=1234567890,v1=abcdef1234567890
 
-{
-  "type": "payment_intent.succeeded",
-  "data": {
-    "object": {
-      "id": "pi_123456789",
-      "amount": 2599,
-      "currency": "usd",
-      "metadata": {
-        "order_id": "{{orderId}}"
-      }
-    }
-  }
-}
 
 ### ============================================
 ### 9. HEALTH CHECK
