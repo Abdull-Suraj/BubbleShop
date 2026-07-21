@@ -1,3 +1,4 @@
+using BubbleShop.Application.AppServices;
 using BubbleShop.Application.Common.Interfaces;
 using BubbleShop.Application.Common.Models;
 using BubbleShop.Domain.Entities;
@@ -8,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace BubbleShop.Application.Features.Orders.Commands.CreateOrder;
 
-public sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Result<Guid>>
+public sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Result<MessageResponse>>
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IProductRepository _productRepository;
@@ -30,7 +31,9 @@ public sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderComma
         _logger = logger;
     }
 
-    public async Task<Result<Guid>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
+    public async Task<Result<MessageResponse>> Handle(
+       CreateOrderCommand request,
+       CancellationToken cancellationToken)
     {
         try
         {
@@ -39,26 +42,26 @@ public sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderComma
             // Validate BusinessId
             if (request.BusinessId == Guid.Empty)
             {
-                return Result<Guid>.Failure("Business ID is required.", "ValidationError");
+                return Result<MessageResponse>.Failure("Business ID is required.", "ValidationError");
             }
 
             // Validate CustomerId
             if (request.CustomerId == Guid.Empty)
             {
-                return Result<Guid>.Failure("Customer ID is required.", "ValidationError");
+                return Result<MessageResponse>.Failure("Customer ID is required.", "ValidationError");
             }
 
             // Validate items
             if (request.Items == null || request.Items.Count == 0)
             {
-                return Result<Guid>.Failure("At least one order item is required.", "ValidationError");
+                return Result<MessageResponse>.Failure("At least one order item is required.", "ValidationError");
             }
 
             // Get customer
             var customer = await _customerRepository.GetByIdAsync(request.CustomerId, cancellationToken);
             if (customer is null)
             {
-                return Result<Guid>.Failure($"Customer {request.CustomerId} not found.", "NotFound");
+                return Result<MessageResponse>.Failure($"Customer {request.CustomerId} not found.", "NotFound");
             }
 
             var orderItems = new List<OrderItem>();
@@ -68,12 +71,12 @@ public sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderComma
                 var product = await _productRepository.GetByIdAsync(item.ProductId, cancellationToken);
                 if (product is null)
                 {
-                    return Result<Guid>.Failure($"Product {item.ProductId} not found.", "NotFound");
+                    return Result<MessageResponse>.Failure($"Product {item.ProductId} not found.", "NotFound");
                 }
 
                 if (product.StockQuantity < item.Quantity)
                 {
-                    return Result<Guid>.Failure(
+                    return Result<MessageResponse>.Failure(
                         $"Insufficient stock for {product.Name}. Available: {product.StockQuantity}",
                         "ValidationError"
                     );
@@ -110,12 +113,12 @@ public sealed class CreateOrderCommandHandler : IRequestHandler<CreateOrderComma
 
             _logger.LogInformation("Order {OrderId} created successfully", order.Id);
 
-            return Result<Guid>.Success(order.Id);
+            return Result<MessageResponse>.Success( MessageResponse.Success($"Order created successfully. Order ID: {order.Id}"));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating order");
-            return Result<Guid>.Failure($"Failed to create order: {ex.Message}");
+            return Result<MessageResponse>.Failure($"Failed to create order: {ex.Message}");
         }
     }
 }

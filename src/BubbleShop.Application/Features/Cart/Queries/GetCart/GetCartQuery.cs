@@ -1,16 +1,12 @@
-﻿using MediatR;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using BubbleShop.Application.Common.Models;
+using MediatR;
 
-namespace BubbleShop.Application.Features.Cart.Queries.GetCart
-{
-    public class GetCartQuery : IRequest<IActionResult>
-    {
-        public Guid CustomerId { get; set; }
-        public Guid BusinessId { get; set; }
-    }
-}
+namespace BubbleShop.Application.Features.Cart.Queries.GetCart;
+
+public sealed record GetCartQuery(
+    string Channel,
+    Guid CustomerId,
+    Guid BusinessId,
+    string Message
+) : IRequest<Result<AppServices.MessageResponse>>;

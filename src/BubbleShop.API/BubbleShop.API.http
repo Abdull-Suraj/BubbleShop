@@ -1,73 +1,91 @@
-﻿### Environment Variables
+﻿### ============================================
+### BUBBLESHOP API TESTING
+### ============================================
+### Environment Variables
 @baseUrl = http://localhost:5088
-@businessId = 4b491c15-ff5b-4547-8eb9-b4a7b37ac55c
+@businessId = 4B491C15-FF5B-4547-8EB9-B4A7B37AC55C
+# @businessId = 48002b23-1c61-4e28-9ff4-c125bd932428
 @customerId = fb026453-c2c1-487f-b785-a3494631ebca
-@productId = bed5d561-088e-40fd-ba8e-63efcf81a31e
+@productId = e76eb5c0-3e49-4440-9cef-fc9f003d33d7
 @orderId = 5d3b0c69-9c6a-43e7-8268-a58bb7a728d2
-# @orderNumber = YOUR_ORDER_NUMBER_HERE
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjRiNDkxYzE1LWZmNWItNDU0Ny04ZWI5LWI0YTdiMzdhYzU1YyIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJaZW5naSBUZWNobm9sb2dpZXMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJ1cGRhdGVkQHN0b3JlLmNvbSIsIndoYXRzYXBwTnVtYmVyIjoiKzE1NTUxMjM0NTY3IiwianRpIjoiODEyMDM5ZWQtYzQ5ZS00OGRiLWEzOTktMzkxNzEyZGJmZWRmIiwiZXhwIjoxNzg0MDM2ODQwLCJpc3MiOiJCdWJibGVTaG9wIiwiYXVkIjoiQnViYmxlU2hvcEFQSSJ9.i7pPiLLrbKcA67e3vbbWOuLpug23qG_FHtjNhK-5e1w
-@whatsAppNumber = +1234567890
-# @transactionReference = YOUR_TRANSACTION_REFERENCE_HERE
+@orderNumber = ORD-2026
+@whatsAppNumber = "+2348162647009"
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjQ4MDAyYjIzLTFjNjEtNGUyOC05ZmY0LWMxMjViZDkzMjQyOCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJUZXN0IFN0b3JlIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvZW1haWxhZGRyZXNzIjoidGVzdEBzdG9yZS5jb20iLCJ3aGF0c2FwcE51bWJlciI6IisyMzQ5MDY3NzQ4NTgyIiwianRpIjoiMGY1NWExNmUtYjViMC00MjA2LTkxMmYtM2E2MDZiNjAwN2E0IiwiZXhwIjoxNzg0NjI5NTk2LCJpc3MiOiJCdWJibGVTaG9wIiwiYXVkIjoiQnViYmxlU2hvcEFQSSJ9.JGCdRw0IrfPNmVVMXsVn-pT_ZkkoBHYVbXYcwRuTxuI
+# @transactionReference = YOUR_TRANSACTION_REFERENCE
 
+### ============================================
+### 1. AUTHENTICATION
+### ============================================
 
-
-### Register a new business
+### 1.1 Register Business
 POST {{baseUrl}}/api/businesses/register
 Content-Type: application/json
 
 {
   "businessName": "Test Store",
-  "email": "ibraheemedrys@gmail.com",
+  "email": "sample@test.com",
   "whatsAppNumber": "+2349067748582",
   "password": "SecurePass123!",
   "phoneNumber": "+2349067748582",
-  "address": "123 Kano, City"
+  "address": "123 Main St, City",
+  "legalName": "Test Store LLC"
 }
 
-### Login to get JWT token
+### 1.2 Login Business
 POST {{baseUrl}}/api/businesses/login
 Content-Type: application/json
 
 {
-  "email": "updated@store.com",
+  "email": "test@store.com",
   "password": "SecurePass123!"
 }
 
-
-### Get business profile (requires authentication)
+### 1.3 Get Business Profile
 GET {{baseUrl}}/api/businesses/{{businessId}}
 Authorization: Bearer {{token}}
 
-
-
-### Update business profile
+### 1.4 Update Business Profile
 PUT {{baseUrl}}/api/businesses/{{businessId}}
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "businessName": "Zengi Technologies",
-  "email": "updated@store.com",
-  "whatsAppNumber": "+15551234567",
-  "phoneNumber": "+15551234567",
+  "businessName": "Updated Store Name new",
+  "email": "updated@storenew.com",
+  "whatsAppNumber": "+15551234590",
+  "phoneNumber": "+15551234590",
   "address": "789 New Address, City",
-  "legalName": "Updated Legal Name LLC",
-  "currency": "NGN"
+  "legalName": "Updated Legal Name LLC"
 }
 
-### Get business statistics
+### 1.5 Get Business Stats
 GET {{baseUrl}}/api/businesses/{{businessId}}/stats
 Authorization: Bearer {{token}}
 
-
-### Get wallet balance
+### 1.6 Get Wallet Balance
 GET {{baseUrl}}/api/businesses/{{businessId}}/wallet
 Authorization: Bearer {{token}}
 
-### Get all products (paginated)
+### ============================================
+### 2. PRODUCTS
+### ============================================
+
+### 2.1 Get All Products (Paginated)
 GET {{baseUrl}}/api/products?pageNumber=1&pageSize=20
 
-### Create a new product (requires authentication)
+### 2.2 Get Product by ID
+GET {{baseUrl}}/api/products/{{productId}}
+
+### 2.3 Search Products (Full)
+GET {{baseUrl}}/api/products/search?keyword=rice&category=Food&minPrice=10&maxPrice=100&pageNumber=1&pageSize=10&businessId={{businessId}}&sortBy=price&sortDescending=true
+
+### 2.4 Quick Search Products
+GET {{baseUrl}}/api/products/quick-search?keyword=rice&businessId={{businessId}}&limit=5
+
+### 2.5 Get Product Price
+GET {{baseUrl}}/api/products/{{businessId}}/Premium%20Rice/price
+
+### 2.6 Create Product
 POST {{baseUrl}}/api/products
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -79,19 +97,11 @@ Content-Type: application/json
   "price": 25.99,
   "stockQuantity": 100,
   "category": "Food & Groceries",
-  "imageUrl": "https://example.com/rice.jpg"
-  
+  "imageUrl": "https://example.com/rice.jpg",
+  "isActive": true
 }
 
-### Get product by ID
-GET {{baseUrl}}/api/products/{{productId}}
-
-
-### Search products
-GET {{baseUrl}}/api/products/search?keyword=rice&category=Food&pageNumber=1&pageSize=10
-
-
-### Update product
+### 2.7 Update Product
 PUT {{baseUrl}}/api/products/{{productId}}
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -99,75 +109,69 @@ Content-Type: application/json
 {
   "name": "Premium Basmati Rice",
   "description": "High quality basmati rice 5kg bag - premium grade",
-  "price": 30.99,
+  "price": 29.99,
   "imageUrl": "https://example.com/rice-updated.jpg",
-  "isActive": false
-
+  "isActive": true,
+  "stockQuantity": 150,
+  "category": "Food & Groceries"
 }
 
-
-### Update product stock
+### 2.8 Update Stock
 PATCH {{baseUrl}}/api/products/{{productId}}/stock
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "Quantity": 85
+  "Quantity": 75
 }
 
-
-### Activate product
+### 2.9 Activate Product
 POST {{baseUrl}}/api/products/{{productId}}/activate
 Authorization: Bearer {{token}}
 
-
-### Deactivate product
+### 2.10 Deactivate Product
 POST {{baseUrl}}/api/products/{{productId}}/deactivate
 Authorization: Bearer {{token}}
 
-
-
-### Export products to CSV
-GET {{baseUrl}}/api/products/export?format=csv
-
-
-### Delete product
+### 2.11 Delete Product
 DELETE {{baseUrl}}/api/products/{{productId}}
 Authorization: Bearer {{token}}
 
+### 2.12 Export Products
+GET {{baseUrl}}/api/products/export?format=csv
 
+### ============================================
+### 3. CUSTOMERS
+### ============================================
 
-### Create or update customer
+### 3.1 Create Customer
 POST {{baseUrl}}/api/customers
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
+  "businessId": "{{businessId}}",
   "name": "John Doe",
   "whatsAppNumber": "+1234567890",
   "phoneNumber": "+1234567890",
   "email": "john.doe@example.com",
   "address": "456 Oak St, City",
-  "city": "Kano",
-  "state": "Kano"
+  "city": "Lagos",
+  "state": "Lagos"
 }
 
-
-### Get customers by business
+### 3.2 Get Customers by Business
 GET {{baseUrl}}/api/customers/business/{{businessId}}?pageNumber=1&pageSize=20
 Authorization: Bearer {{token}}
 
-### Get customer by ID
+### 3.3 Get Customer by ID
 GET {{baseUrl}}/api/customers/{{customerId}}
 Authorization: Bearer {{token}}
 
+### 3.4 Get Customer by WhatsApp
+GET {{baseUrl}}/api/customers/by-whatsapp/{{whatsAppNumber}}?businessId={{businessId}}
 
-### Get customer by WhatsApp number
-GET {{baseUrl}}/api/customers/by-whatsapp/+1234567890?businessId={{businessId}}
-
-
-
-### Block customer
+### 3.5 Block Customer
 POST {{baseUrl}}/api/customers/{{customerId}}/block
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -176,19 +180,21 @@ Content-Type: application/json
   "reason": "Suspicious activity"
 }
 
-
-### Unblock customer
+### 3.6 Unblock Customer
 POST {{baseUrl}}/api/customers/{{customerId}}/unblock
 Authorization: Bearer {{token}}
 
-### Delete customer
+### 3.7 Delete Customer
 DELETE {{baseUrl}}/api/customers/{{customerId}}
 Authorization: Bearer {{token}}
 
+### ============================================
+### 4. ORDERS
+### ============================================
 
-
-### Create a new order
+### 4.1 Create Order
 POST {{baseUrl}}/api/orders
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -207,16 +213,298 @@ Content-Type: application/json
   "shippingAddress": "123 Main St, City"
 }
 
-### Get all orders (paginated)
+### 4.2 Get All Orders
 GET {{baseUrl}}/api/orders?pageNumber=1&pageSize=20
 Authorization: Bearer {{token}}
 
-
-### Get order by ID
+### 4.3 Get Order by ID
 GET {{baseUrl}}/api/orders/{{orderId}}
 Authorization: Bearer {{token}}
 
-
-### Get orders by customer
+### 4.4 Get Orders by Customer
 GET {{baseUrl}}/api/orders/customer/{{customerId}}
 Authorization: Bearer {{token}}
+
+### 4.5 Get Orders by Business
+GET {{baseUrl}}/api/orders/business/{{businessId}}?pageNumber=1&pageSize=20
+Authorization: Bearer {{token}}
+
+### 4.6 Track Order
+GET {{baseUrl}}/api/orders/track/{{orderNumber}}
+
+### 4.7 Confirm Order
+POST {{baseUrl}}/api/orders/{{orderId}}/confirm
+Authorization: Bearer {{token}}
+
+### 4.8 Cancel Order
+POST {{baseUrl}}/api/orders/{{orderId}}/cancel
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "reason": "Customer changed mind"
+}
+
+### 4.9 Update Order Status
+PATCH {{baseUrl}}/api/orders/{{orderId}}/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "Shipped"
+}
+
+### ============================================
+### 5. PAYMENTS
+### ============================================
+
+### 5.1 Initiate Payment
+POST {{baseUrl}}/api/payments/initiate/{{orderId}}?provider=flutterwave&currency=NGN
+
+### 5.2 Get Payment Status
+GET {{baseUrl}}/api/payments/status/{{transactionReference}}
+Authorization: Bearer {{token}}
+
+### 5.3 Get Business Payments
+GET {{baseUrl}}/api/payments/business/{{businessId}}?pageNumber=1&pageSize=20
+Authorization: Bearer {{token}}
+
+### 5.4 Get Customer Payments
+GET {{baseUrl}}/api/payments/customer/{{customerId}}
+Authorization: Bearer {{token}}
+
+### ============================================
+### 6. WHATSAPP / CHANNELS
+### ============================================
+
+### 6.1 Process WhatsApp Message (AI Chat)
+POST {{baseUrl}}/api/whatsapp/message
+Content-Type: application/json
+
+{
+  "from": "+2349067748582",
+  "to": "+15551234567",
+  "businessId": "{{businessId}}",
+  "customerName": "John Doe",
+  "message": "I want to buy 2 bags of rice"
+}
+
+### 6.2 Process WhatsApp Message (Order)
+POST {{baseUrl}}/api/whatsapp/order
+Content-Type: application/json
+
+{
+  "customerWhatsApp": "+2349067748582",
+  "customerName": "John Doe",
+  "businessWhatsApp": "+15551234567",
+  "message": "I want to buy 2 bags of rice"
+}
+
+### 6.3 Track Order via WhatsApp
+POST {{baseUrl}}/api/whatsapp/track
+Content-Type: application/json
+
+{
+  "orderNumber": "{{orderNumber}}",
+  "customerWhatsApp": "{{whatsappNumber}}"
+}
+
+### 6.4 Get Conversation History
+GET {{baseUrl}}/api/whatsapp/history/{{whatsappNumber}}?businessId={{businessId}}
+Authorization: Bearer {{token}}
+
+### 6.5 Register Channel
+POST {{baseUrl}}/api/channels/register
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "businessId": "{{businessId}}",
+  "channelType": "whatsapp",
+  "webhookUrl": "https://webhook.bubbleshop.com/whatsapp",
+  "apiKey": "your-api-key",
+  "isActive": true
+}
+
+### 6.6 Get Business Channels
+GET {{baseUrl}}/api/channels/{{businessId}}/channels
+Authorization: Bearer {{token}}
+
+### 6.7 Get Channel Status
+GET {{baseUrl}}/api/channels/{{businessId}}/whatsapp/status
+Authorization: Bearer {{token}}
+
+### 6.8 Activate Channel
+POST {{baseUrl}}/api/channels/{{businessId}}/whatsapp/activate
+Authorization: Bearer {{token}}
+
+### 6.9 Deactivate Channel
+POST {{baseUrl}}/api/channels/{{businessId}}/whatsapp/deactivate
+Authorization: Bearer {{token}}
+
+### ============================================
+### 7. SUPPORT
+### ============================================
+
+### 7.1 Contact Support
+POST {{baseUrl}}/api/whatsapp/message
+Content-Type: application/json
+
+{
+  "from": "+2349067748582",
+  "to": "+15551234567",
+  "businessId": "{{businessId}}",
+  "customerName": "John Doe",
+  "message": "I need help with my order"
+}
+
+### 7.2 Provide Feedback
+POST {{baseUrl}}/api/whatsapp/message
+Content-Type: application/json
+
+{
+  "from": "+2349067748582",
+  "to": "+15551234567",
+  "businessId": "{{businessId}}",
+  "customerName": "John Doe",
+  "message": "Great service! 5 stars"
+}
+
+### ============================================
+### 8. WEBHOOKS
+### ============================================
+
+### 8.1 Flutterwave Webhook
+POST {{baseUrl}}/api/webhooks/flutterwave
+Content-Type: application/json
+verif-hash: your_webhook_secret
+
+{
+  "event": "charge.completed",
+  "data": {
+    "id": "txn_123456789",
+    "tx_ref": "BS-ORD-20241201-ABC123-20241201120000",
+    "amount": 25.99,
+    "currency": "NGN",
+    "status": "successful",
+    "meta": {
+      "order_id": "{{orderId}}"
+    }
+  }
+}
+
+
+
+### ============================================
+### 9. HEALTH CHECK
+### ============================================
+
+### 9.1 Health Check
+GET {{baseUrl}}/health
+
+### 9.2 API Info
+GET {{baseUrl}}/
+
+### ============================================
+### 10. COMPLETE TEST FLOW (Run in Order)
+### ============================================
+
+### STEP 1: Register Business
+POST {{baseUrl}}/api/businesses/register
+Content-Type: application/json
+
+{
+  "businessName": "Test Store",
+  "email": "test@store.com",
+  "whatsAppNumber": "+15551234567",
+  "password": "SecurePass123!",
+  "phoneNumber": "+15551234567",
+  "address": "123 Main St, City"
+}
+
+### STEP 2: Login
+POST {{baseUrl}}/api/businesses/login
+Content-Type: application/json
+
+{
+  "email": "test@store.com",
+  "password": "SecurePass123!"
+}
+
+### STEP 3: Create Product
+POST {{baseUrl}}/api/products
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "businessId": "{{businessId}}",
+  "name": "Premium Rice",
+  "description": "High quality basmati rice 5kg bag",
+  "price": 25.99,
+  "stockQuantity": 100,
+  "category": "Food & Groceries",
+  "imageUrl": "https://example.com/rice.jpg",
+  "isActive": true
+}
+
+### STEP 4: Create Customer
+POST {{baseUrl}}/api/customers
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "businessId": "{{businessId}}",
+  "name": "John Doe",
+  "whatsAppNumber": "+1234567890",
+  "phoneNumber": "+1234567890",
+  "email": "john.doe@example.com",
+  "address": "456 Oak St, City"
+}
+
+### STEP 5: Create Order
+POST {{baseUrl}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "businessId": "{{businessId}}",
+  "customerId": "{{customerId}}",
+  "items": [
+    {
+      "productId": "{{productId}}",
+      "quantity": 2
+    }
+  ],
+  "customerName": "John Doe",
+  "customerWhatsApp": "+1234567890",
+  "customerEmail": "john.doe@example.com",
+  "customerPhone": "+1234567890",
+  "shippingAddress": "123 Main St, City"
+}
+
+### STEP 6: Get Order
+GET {{baseUrl}}/api/orders/{{orderId}}
+Authorization: Bearer {{token}}
+
+### STEP 7: Confirm Order
+POST {{baseUrl}}/api/orders/{{orderId}}/confirm
+Authorization: Bearer {{token}}
+
+### STEP 8: Track Order
+GET {{baseUrl}}/api/orders/track/{{orderNumber}}
+
+### STEP 9: Initiate Payment
+POST {{baseUrl}}/api/payments/initiate/{{orderId}}?provider=flutterwave&currency=NGN
+
+### STEP 10: Process WhatsApp Message
+POST {{baseUrl}}/api/whatsapp/message
+Content-Type: application/json
+
+{
+  "from": "{{whatsappNumber}}",
+  "to": "+15551234567",
+  "businessId": "{{businessId}}",
+  "customerName": "John Doe",
+  "message": "I want to buy 2 bags of rice"
+}
+

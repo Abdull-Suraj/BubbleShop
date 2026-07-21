@@ -4,5 +4,6 @@ public enum ConversationStatus
 {
     Active,
     Closed,
-    Archived
+    Archived,
+    WaitingForAgent
 }

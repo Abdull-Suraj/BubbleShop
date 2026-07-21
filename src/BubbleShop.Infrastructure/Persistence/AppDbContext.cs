@@ -18,12 +18,19 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<Channel> Channels => Set<Channel>();
     public DbSet<Payment> Payments => Set<Payment>();
     //public DbSet<Delivery> Deliveries => Set<Delivery>();
     public DbSet<Conversation> Conversations => Set<Conversation>();
     public DbSet<ConversationMessage> ConversationMessages => Set<ConversationMessage>();
     public DbSet<Business> Businesses => Set<Business>();
     public DbSet<AutomationRule> AutomationRules => Set<AutomationRule>();
+    public DbSet<Cart> Carts => Set<Cart>();
+    public DbSet<CartItem> CartItems => Set<CartItem>();
+    public DbSet<Feedback> Feedbacks => Set<Feedback>();
+    public DbSet<SupportTicket> SupportTickets => Set<SupportTicket>();
+    public DbSet<User> Users => Set<User>();
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -536,7 +543,13 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
         modelBuilder.Entity<Conversation>(entity =>
         {
             entity.HasKey(c => c.Id);
-            entity.HasIndex(c => new { c.BusinessId, c.WhatsAppNumber }).IsUnique();
+
+            entity.HasIndex(c => new
+            {
+                c.BusinessId,
+                c.WhatsAppNumber
+            }).IsUnique();
+
             entity.HasIndex(c => c.Status);
 
             entity.Property(c => c.WhatsAppNumber)
@@ -546,6 +559,12 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
             entity.Property(c => c.CustomerName)
                 .HasMaxLength(200);
 
+            entity.Property(c => c.Channel)
+                .HasMaxLength(50);
+
+            entity.Property(c => c.AssignedAgentId)
+                .HasMaxLength(100);
+
             entity.Property(c => c.Status)
                 .HasConversion<string>()
                 .HasMaxLength(50);
@@ -553,7 +572,28 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
             entity.Property(c => c.UnreadCount)
                 .HasDefaultValue(0);
 
+            entity.Property(c => c.LastMessageAt);
 
+            // Metadata JSON
+            var metadataComparer = new ValueComparer<Dictionary<string, string>>(
+                (a, b) =>
+                    JsonSerializer.Serialize(a, (JsonSerializerOptions?)null) ==
+                    JsonSerializer.Serialize(b, (JsonSerializerOptions?)null),
+
+                d => JsonSerializer.Serialize(d, (JsonSerializerOptions?)null)
+                    .GetHashCode(),
+
+                d => d.ToDictionary(x => x.Key, x => x.Value)
+            );
+
+            entity.Property(c => c.Metadata)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<Dictionary<string, string>>(
+                            v,
+                            (JsonSerializerOptions?)null)
+                         ?? new Dictionary<string, string>())
+                .Metadata.SetValueComparer(metadataComparer);
 
             entity.HasOne(c => c.Customer)
                 .WithMany(cu => cu.Conversations)
@@ -561,32 +601,97 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
                 .OnDelete(DeleteBehavior.NoAction);
 
             entity.HasOne(c => c.Business)
-                .WithMany(b=>b.Conversations)
+                .WithMany(b => b.Conversations)
                 .HasForeignKey(c => c.BusinessId)
                 .OnDelete(DeleteBehavior.Cascade);
+
             entity.HasMany(c => c.Messages)
-    .WithOne(m => m.Conversation)
-    .HasForeignKey(m => m.ConversationId)
-    .OnDelete(DeleteBehavior.Cascade);
+                .WithOne(m => m.Conversation)
+                .HasForeignKey(m => m.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // ConversationMessage Configuration
-        modelBuilder.Entity<ConversationMessage>(entity =>
+        // Channel Configuration
+        modelBuilder.Entity<Channel>(entity =>
         {
             entity.HasKey(x => x.Id);
 
-            entity.Property(x => x.Message)
-                .HasMaxLength(4000)
+            entity.Property(x => x.ChannelType)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
+            entity.Property(x => x.Configuration)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<Dictionary<string, string>>(
+                        v,
+                        (JsonSerializerOptions?)null
+                    ) ?? new()
+                )
+                .Metadata.SetValueComparer(
+                    new ValueComparer<Dictionary<string, string>>(
+                        (a, b) =>
+                            JsonSerializer.Serialize(a, (JsonSerializerOptions?)null)
+                            ==
+                            JsonSerializer.Serialize(b, (JsonSerializerOptions?)null),
+
+                        d =>
+                            JsonSerializer.Serialize(d, (JsonSerializerOptions?)null)
+                            .GetHashCode(),
+
+                        d =>
+                            d.ToDictionary(x => x.Key, x => x.Value)
+                    )
+                );
+
+            entity.Property(x => x.WebhookUrl)
+                .HasMaxLength(500);
+
+            entity.Property(x => x.ApiKey)
+                .HasMaxLength(500);
+
+            entity.Property(x => x.IsActive)
                 .IsRequired();
 
-            entity.Property(x => x.Sender)
-                .HasMaxLength(100)
+            entity.Property(x => x.IsVerified)
                 .IsRequired();
 
-            entity.Property(x => x.Timestamp)
-                .IsRequired();
+            entity.HasIndex(x => new
+            {
+                x.BusinessId,
+                x.ChannelType
+            })
+            .IsUnique();
+
+            entity.HasOne(x => x.Business)
+                .WithMany(x => x.Channels)
+                .HasForeignKey(x => x.BusinessId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
+        //conversation Message Configuration
+        modelBuilder.Entity<ConversationMessage>(entity =>
+        {
+            entity.HasKey(m => m.Id);
 
+            entity.Property(m => m.Message)
+                .IsRequired()
+                .HasMaxLength(4000);
+
+            entity.Property(m => m.Sender)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(m => m.IsRead)
+                .HasDefaultValue(false);
+
+            entity.Property(m => m.Timestamp)
+                .IsRequired();
+
+            entity.HasOne(m => m.Conversation)
+                .WithMany(c => c.Messages)
+                .HasForeignKey(m => m.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
         // AutomationRule Configuration
         modelBuilder.Entity<AutomationRule>(entity =>
         {
@@ -664,6 +769,408 @@ public sealed class AppDbContext : DbContext, IUnitOfWork
                 .WithMany()
                 .HasForeignKey(ar => ar.AssociatedProductId)
                 .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // Cart Configuration
+        modelBuilder.Entity<Cart>(entity =>
+        {
+        entity.HasKey(c => c.Id);
+
+        entity.Property(c => c.CustomerId)
+            .IsRequired();
+
+        entity.Property(c => c.SessionId)
+            .HasMaxLength(100);
+
+        entity.Property(c => c.Status)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        entity.Property(c => c.CouponCode)
+            .HasMaxLength(50);
+
+        entity.Property(c => c.DiscountAmount)
+            .HasPrecision(18, 2);
+
+        entity.Property(c => c.Notes)
+            .HasMaxLength(500);
+
+        entity.HasIndex(c => c.CustomerId)
+            .IsUnique();
+
+        entity.HasIndex(c => c.SessionId);
+        entity.HasIndex(c => c.Status);
+        entity.HasIndex(c => c.LastActivityAt);
+
+        // Configure CartItems as owned collection
+        entity.HasMany(c => c.Items)
+            .WithOne(i => i.Cart)
+            .HasForeignKey(i => i.CartId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        entity.HasOne(c => c.Customer)
+            .WithOne()
+            .HasForeignKey<Cart>(c => c.CustomerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+
+        });
+
+        // CartItem Configuration
+        modelBuilder.Entity<CartItem>(entity =>
+        {
+            entity.HasKey(i => i.Id);
+
+            entity.Property(i => i.ProductName)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            entity.Property(i => i.ProductSKU)
+                .HasMaxLength(100);
+
+            entity.Property(i => i.ProductImage)
+                .HasMaxLength(500);
+
+            entity.Property(i => i.ProductImageThumbnail)
+                .HasMaxLength(500);
+
+            entity.Property(i => i.Quantity)
+                .IsRequired();
+
+            entity.Property(i => i.UnitPrice)
+                .HasPrecision(18, 2);
+
+
+
+            entity.Property(i => i.ProductDescription)
+                .HasMaxLength(2000);
+
+            entity.Property(i => i.ProductCategory)
+                .HasMaxLength(100);
+
+
+
+            // Configure SelectedOptions as JSON
+            entity.OwnsMany(i => i.SelectedOptions, options =>
+            {
+                options.WithOwner().HasForeignKey("CartItemId");
+                options.Property(o => o.Id).ValueGeneratedOnAdd();
+                options.Property(o => o.Name).IsRequired().HasMaxLength(100);
+                options.Property(o => o.Value).IsRequired().HasMaxLength(100);
+                options.Property(o => o.PriceAdjustment).HasPrecision(18, 2);
+                options.ToTable("CartItemOptions");
+            });
+
+            entity.HasIndex(i => i.CartId);
+            entity.HasIndex(i => i.ProductId);
+
+            entity.HasOne(i => i.Cart)
+                .WithMany(c => c.Items)
+                .HasForeignKey(i => i.CartId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(i => i.Product)
+                .WithMany()
+                .HasForeignKey(i => i.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+
+        } );
+        // Feedback Configuration
+        modelBuilder.Entity<Feedback>(entity =>
+        {
+            entity.HasKey(f => f.Id);
+
+            entity.HasIndex(f => new
+            {
+                f.BusinessId,
+                f.CustomerId
+            });
+
+            entity.HasIndex(f => f.Rating);
+
+            entity.Property(f => f.Channel)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            entity.Property(f => f.Comment)
+                .HasMaxLength(2000);
+
+            entity.Property(f => f.Response)
+                .HasMaxLength(2000);
+
+            entity.Property(f => f.Category)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
+
+            entity.Property(f => f.Rating)
+                .IsRequired();
+
+
+            // Store Tags as JSON
+            entity.Property(f => f.Tags)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<string>>(
+                        v,
+                        (JsonSerializerOptions?)null
+                    ) ?? new()
+                )
+                .Metadata.SetValueComparer(
+                    new ValueComparer<List<string>>(
+                        (a, b) =>
+                            JsonSerializer.Serialize(a, (JsonSerializerOptions?)null)
+                            ==
+                            JsonSerializer.Serialize(b, (JsonSerializerOptions?)null),
+
+                        c =>
+                            JsonSerializer.Serialize(c, (JsonSerializerOptions?)null)
+                            .GetHashCode(),
+
+                        c =>
+                            c.ToList()
+                    )
+                );
+
+
+            // Store Metadata as JSON
+            entity.Property(f => f.Metadata)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<Dictionary<string, string>>(
+                        v,
+                        (JsonSerializerOptions?)null
+                    ) ?? new()
+                )
+                .Metadata.SetValueComparer(
+                    new ValueComparer<Dictionary<string, string>>(
+                        (a, b) =>
+                            JsonSerializer.Serialize(a, (JsonSerializerOptions?)null)
+                            ==
+                            JsonSerializer.Serialize(b, (JsonSerializerOptions?)null),
+
+                        d =>
+                            JsonSerializer.Serialize(d, (JsonSerializerOptions?)null)
+                            .GetHashCode(),
+
+                        d =>
+                            d.ToDictionary(x => x.Key, x => x.Value)
+                    )
+                );
+
+
+            // Customer Relationship
+            entity.HasOne(f => f.Customer)
+                .WithMany()
+                .HasForeignKey(f => f.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // Business Relationship
+            entity.HasOne(f => f.Business)
+                .WithMany()
+                .HasForeignKey(f => f.BusinessId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // Optional Order Relationship
+            entity.HasOne(f => f.Order)
+                .WithMany()
+                .HasForeignKey(f => f.OrderId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+        // SupportTicket Configuration
+        modelBuilder.Entity<SupportTicket>(entity =>
+        {
+            entity.HasKey(t => t.Id);
+
+
+            entity.HasIndex(t => t.TicketNumber)
+                .IsUnique();
+
+
+            entity.HasIndex(t => t.Status);
+
+            entity.HasIndex(t => new
+            {
+                t.BusinessId,
+                t.CustomerId
+            });
+
+
+            entity.Property(t => t.TicketNumber)
+                .IsRequired()
+                .HasMaxLength(50);
+
+
+            entity.Property(t => t.Subject)
+                .IsRequired()
+                .HasMaxLength(300);
+
+
+            entity.Property(t => t.Message)
+                .IsRequired()
+                .HasMaxLength(4000);
+
+
+            entity.Property(t => t.Channel)
+                .IsRequired()
+                .HasMaxLength(50);
+
+
+            entity.Property(t => t.ChannelConversationId)
+                .HasMaxLength(200);
+
+
+            entity.Property(t => t.Status)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
+
+            entity.Property(t => t.Priority)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
+
+            entity.Property(t => t.Category)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
+
+            entity.Property(t => t.Resolution)
+                .HasMaxLength(2000);
+
+
+
+            // Metadata JSON
+            entity.Property(t => t.Metadata)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<Dictionary<string, string>>(
+                        v,
+                        (JsonSerializerOptions?)null
+                    ) ?? new()
+                )
+                .Metadata.SetValueComparer(
+                    new ValueComparer<Dictionary<string, string>>(
+                        (a, b) =>
+                            JsonSerializer.Serialize(a, (JsonSerializerOptions?)null)
+                            ==
+                            JsonSerializer.Serialize(b, (JsonSerializerOptions?)null),
+
+                        d =>
+                            JsonSerializer.Serialize(d, (JsonSerializerOptions?)null)
+                            .GetHashCode(),
+
+                        d =>
+                            d.ToDictionary(x => x.Key, x => x.Value)
+                    )
+                );
+
+
+            // Customer
+            entity.HasOne(t => t.Customer)
+                .WithMany()
+                .HasForeignKey(t => t.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            // Business
+            entity.HasOne(t => t.Business)
+                .WithMany()
+                .HasForeignKey(t => t.BusinessId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+
+            // Agent Assignment
+            entity.HasOne(t => t.AssignedToAgent)
+                .WithMany(u => u.AssignedTickets)
+                .HasForeignKey(t => t.AssignedToAgentId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+
+
+            // Ticket Comments
+            entity.HasMany(t => t.Comments)
+                .WithOne()
+                .HasForeignKey("SupportTicketId")
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+        });
+        // User Configuration
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(u => u.Id);
+
+
+            entity.HasIndex(u => u.Email)
+                .IsUnique();
+
+
+            entity.HasIndex(u => new
+            {
+                u.BusinessId,
+                u.Email
+            });
+
+
+
+            entity.Property(u => u.FirstName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+
+            entity.Property(u => u.LastName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+
+            entity.Property(u => u.Email)
+                .IsRequired()
+                .HasMaxLength(200);
+
+
+            entity.Property(u => u.PasswordHash)
+                .IsRequired()
+                .HasMaxLength(500);
+
+
+            entity.Property(u => u.PhoneNumber)
+                .HasMaxLength(30);
+
+
+            entity.Property(u => u.ProfileImageUrl)
+                .HasMaxLength(500);
+
+
+
+            entity.Property(u => u.Role)
+                .HasConversion<string>()
+                .HasMaxLength(50);
+
+
+
+            entity.Property(u => u.IsActive)
+                .HasDefaultValue(true);
+
+
+
+            // Business relationship
+            entity.HasOne(u => u.Business)
+                .WithMany()
+                .HasForeignKey(u => u.BusinessId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+
+            // Private collection mapping
+            entity.Navigation(u => u.AssignedTickets)
+                .UsePropertyAccessMode(PropertyAccessMode.Field);
+
         });
     }
 

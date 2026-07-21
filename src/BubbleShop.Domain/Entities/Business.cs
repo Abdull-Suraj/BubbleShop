@@ -44,7 +44,9 @@ public class Business : BaseEntity
     private readonly List<Payment> _payments = [];
     private readonly List<AutomationRule> _automationRules = [];
     private readonly List<Conversation> _conversations = [];
+    private readonly List<Channel> _channels = [];
 
+    public IReadOnlyCollection<Channel> Channels => _channels;
     public IReadOnlyCollection<Conversation> Conversations
         => _conversations;
     public IReadOnlyCollection<Product> Products => _products;
@@ -215,12 +217,11 @@ public class Business : BaseEntity
     public void UpdatePassword(string passwordHash)
     {
         if (string.IsNullOrWhiteSpace(passwordHash))
-            throw new DomainException("Password hash cannot be empty");
+            throw new DomainException("Password hash cannot be empty.");
 
         PasswordHash = passwordHash;
         LastModifiedAt = DateTime.UtcNow;
     }
-
     public bool VerifyPassword(string password, Func<string, string> hashProvider)
     {
         if (string.IsNullOrWhiteSpace(password))
@@ -331,4 +332,89 @@ public class Business : BaseEntity
     {
         return $"{BusinessName} ({Email})";
     }
+    // ============ CHANNEL METHODS ============
+
+    public Channel RegisterChannel(
+        ChannelType channelType,
+        string? webhookUrl = null,
+        string? apiKey = null,
+        bool isActive = true)
+    {
+        if (_channels.Any(c => c.ChannelType == channelType))
+            throw new DomainException($"{channelType} channel is already registered.");
+
+        var channel = new Channel(
+            Id,
+            channelType,
+            webhookUrl,
+            apiKey,
+            isActive);
+
+        _channels.Add(channel);
+        LastModifiedAt = DateTime.UtcNow;
+
+        return channel;
+    }
+
+    public void RemoveChannel(ChannelType channelType)
+    {
+        var channel = _channels.FirstOrDefault(c => c.ChannelType == channelType);
+
+        if (channel is null)
+            throw new DomainException($"{channelType} channel not found.");
+
+        _channels.Remove(channel);
+        LastModifiedAt = DateTime.UtcNow;
+    }
+
+    public Channel GetChannel(ChannelType channelType)
+    {
+        var channel = _channels.FirstOrDefault(c => c.ChannelType == channelType);
+
+        if (channel is null)
+            throw new DomainException($"{channelType} channel not found.");
+
+        return channel;
+    }
+
+    public bool HasChannel(ChannelType channelType)
+    {
+        return _channels.Any(c => c.ChannelType == channelType);
+    }
+
+    public void ActivateChannel(ChannelType channelType)
+    {
+        GetChannel(channelType).Activate();
+        LastModifiedAt = DateTime.UtcNow;
+    }
+
+    public void DeactivateChannel(ChannelType channelType)
+    {
+        GetChannel(channelType).Deactivate();
+        LastModifiedAt = DateTime.UtcNow;
+    }
+
+    public void VerifyChannel(ChannelType channelType)
+    {
+        GetChannel(channelType).Verify();
+        LastModifiedAt = DateTime.UtcNow;
+    }
+
+    public void UpdateChannelWebhook(ChannelType channelType, string webhookUrl)
+    {
+        GetChannel(channelType).UpdateWebhookUrl(webhookUrl);
+        LastModifiedAt = DateTime.UtcNow;
+    }
+
+    public void UpdateChannelApiKey(ChannelType channelType, string apiKey)
+    {
+        GetChannel(channelType).UpdateApiKey(apiKey);
+        LastModifiedAt = DateTime.UtcNow;
+    }
+
+    public void RecordChannelActivity(ChannelType channelType)
+    {
+        GetChannel(channelType).RecordActivity();
+    }
 }
+

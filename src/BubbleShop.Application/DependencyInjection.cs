@@ -1,4 +1,5 @@
 using BubbleShop.Application.AppServices;
+using BubbleShop.Application.Channels;
 using BubbleShop.Application.Common.Behaviours;
 using BubbleShop.Application.Common.Interfaces;
 
@@ -20,9 +21,12 @@ public static class DependencyInjection
         services.AddScoped<IAIIntentService, AIIntentService>();
         services.AddScoped<ICommandFactory, CommandFactory>();
         services.AddScoped<IMessageRouter, MessageRouter>();
-        //services.AddScoped<IDeliveryService, DeliveryService>();
         services.AddScoped<IAIAgentService, DummyAIAgentService>();
-    
+        services.AddScoped<IChannelAdapter, WhatsAppChannelAdapter>();
+      
+        //services.AddScoped<IChannelAdapter, TelegramChannelAdapter>();
+        //services.AddScoped<IChannelAdapter, InstagramChannelAdapter>();
+        //services.AddScoped<IChannelAdapter, FacebookChannelAdapter>();
 
         // Register MediatR (CQRS)
         services.AddMediatR(cfg =>

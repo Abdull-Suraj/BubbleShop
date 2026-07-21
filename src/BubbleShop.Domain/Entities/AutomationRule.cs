@@ -1,6 +1,6 @@
 ﻿using BubbleShop.Domain.Common;
 using BubbleShop.Domain.Enums;
-
+using RuleMatchType = BubbleShop.Domain.Enums.MatchType;
 namespace BubbleShop.Domain.Entities;
 
 
@@ -18,7 +18,7 @@ public class AutomationRule : BaseEntity
     public int Priority { get; private set; } = 0;
 
     // Match Type (Exact, Contains, StartsWith, EndsWith)
-    public MatchType MatchType { get; private set; } = MatchType.Contains;
+    public RuleMatchType MatchType { get; private set; } = RuleMatchType.Contains;
 
     // Optional: Time restrictions
     public TimeOnly? StartTime { get; private set; }
@@ -41,7 +41,7 @@ public class AutomationRule : BaseEntity
         string autoReplyMessage,
         RuleAction action,
         Guid? associatedProductId = null,
-        MatchType matchType = MatchType.Contains,
+        RuleMatchType matchType = RuleMatchType.Contains,
         int priority = 0)
     {
         Id = Guid.NewGuid();
@@ -64,7 +64,7 @@ public class AutomationRule : BaseEntity
         string autoReplyMessage,
         RuleAction action,
         Guid? associatedProductId = null,
-        MatchType matchType = MatchType.Contains,
+        RuleMatchType matchType = RuleMatchType.Contains,
         int priority = 0)
     {
         TriggerKeyword = triggerKeyword.ToLowerInvariant();
@@ -122,11 +122,11 @@ public class AutomationRule : BaseEntity
 
         return MatchType switch
         {
-            MatchType.Exact => lowerMessage == TriggerKeyword,
-            MatchType.Contains => lowerMessage.Contains(TriggerKeyword),
-            MatchType.StartsWith => lowerMessage.StartsWith(TriggerKeyword),
-            MatchType.EndsWith => lowerMessage.EndsWith(TriggerKeyword),
-            MatchType.Regex => System.Text.RegularExpressions.Regex.IsMatch(lowerMessage, TriggerKeyword),
+            RuleMatchType.Exact => lowerMessage == TriggerKeyword,
+            RuleMatchType.Contains => lowerMessage.Contains(TriggerKeyword),
+            RuleMatchType.StartsWith => lowerMessage.StartsWith(TriggerKeyword),
+            RuleMatchType.EndsWith => lowerMessage.EndsWith(TriggerKeyword),
+            RuleMatchType.Regex => System.Text.RegularExpressions.Regex.IsMatch(lowerMessage, TriggerKeyword),
             _ => lowerMessage.Contains(TriggerKeyword)
         };
     }

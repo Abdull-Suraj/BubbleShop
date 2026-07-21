@@ -9,4 +9,7 @@ public interface IOrderRepository : IRepository<Order>
     Task<Order?> GetWithItemsAsync(Guid orderId, CancellationToken cancellationToken = default);
    
     Task<Order?> GetByOrderNumberAsync(string orderNumber, CancellationToken cancellationToken = default);
+    Task<Order?> GetLatestPendingOrderAsync(
+        Guid customerId,
+        CancellationToken cancellationToken = default);
 }

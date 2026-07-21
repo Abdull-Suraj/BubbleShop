@@ -1,92 +1,67 @@
+// Domain/Entities/Conversation.cs
 using BubbleShop.Domain.Common;
 using BubbleShop.Domain.Enums;
 
 namespace BubbleShop.Domain.Entities;
 
-public sealed class Conversation : BaseEntity
+public class Conversation : BaseEntity
 {
+    public Guid BusinessId { get; private set; }
+    public Guid CustomerId { get; private set; }
+    public string WhatsAppNumber { get; private set; } = string.Empty;
+    public string CustomerName { get; private set; } = string.Empty;
+    public string Channel { get; private set; } = string.Empty;
+    public ConversationStatus Status { get; private set; }
+   public DateTime? LastMessageAt { get; private set; }
+    public int UnreadCount { get; private set; }
+    public ICollection<ConversationMessage> Messages { get; private set; }
+    = new List<ConversationMessage>();
+    
+    public string? AssignedAgentId { get; private set; }
+    public Dictionary<string, string> Metadata { get; private set; } = new();
+
+    public Business? Business { get; private set; } = null!;
+    public Customer? Customer { get; private set; }
+
     private Conversation() { }
 
     public Conversation(
         Guid businessId,
         Guid customerId,
         string whatsAppNumber,
-        string customerName)
+        string? customerName = null,
+        string channel = "whatsapp")
     {
         Id = Guid.NewGuid();
+
         BusinessId = businessId;
         CustomerId = customerId;
         WhatsAppNumber = whatsAppNumber;
-        CustomerName = customerName;
+        CustomerName = customerName ?? "Customer";
+        Channel = channel;
 
         Status = ConversationStatus.Active;
+        Messages = new List<ConversationMessage>();
 
         CreatedAt = DateTime.UtcNow;
         LastMessageAt = DateTime.UtcNow;
+
+        UnreadCount = 0;
+        Metadata = new Dictionary<string, string>();
     }
 
-    public Guid BusinessId { get; private set; }
-
-    public Guid CustomerId { get; private set; }
-
-    public string WhatsAppNumber { get; private set; } = string.Empty;
-
-    public string CustomerName { get; private set; } = string.Empty;
-
-    public ConversationStatus Status { get; private set; }
-
-    public DateTime? LastMessageAt { get; private set; }
-
-    public int UnreadCount { get; private set; }
-
-    public ICollection<ConversationMessage> Messages { get; private set; }
-        = new List<ConversationMessage>();
-
-    public Business? Business { get; private set; }
-
-    public Customer? Customer { get; private set; }
-
-    public void AddCustomerMessage(string message)
+    public void AddMessage(string message, string sender, bool isFromCustomer)
     {
-        if (string.IsNullOrWhiteSpace(message))
-            return;
-
         Messages.Add(new ConversationMessage(
-            message,
-            "Customer",
-            true));
-
+    conversationId: Id,
+    message: message,
+    sender: sender,
+    isFromCustomer: isFromCustomer));
         LastMessageAt = DateTime.UtcNow;
         LastModifiedAt = DateTime.UtcNow;
-        UnreadCount++;
-    }
 
-    public void AddAssistantMessage(string message)
-    {
-        if (string.IsNullOrWhiteSpace(message))
-            return;
-
-        Messages.Add(new ConversationMessage(
-            message,
-            "Assistant",
-            false));
-
-        LastMessageAt = DateTime.UtcNow;
-        LastModifiedAt = DateTime.UtcNow;
-    }
-
-    public void AddSystemMessage(string message)
-    {
-        if (string.IsNullOrWhiteSpace(message))
-            return;
-
-        Messages.Add(new ConversationMessage(
-            message,
-            "System",
-            false));
-
-        LastMessageAt = DateTime.UtcNow;
-        LastModifiedAt = DateTime.UtcNow;
+        if (isFromCustomer)
+            UnreadCount++;
     }
 
     public void MarkAsRead()
@@ -107,23 +82,33 @@ public sealed class Conversation : BaseEntity
         LastModifiedAt = DateTime.UtcNow;
     }
 
+    public void AssignAgent(string agentId)
+    {
+        AssignedAgentId = agentId;
+        Status = ConversationStatus.Active;
+        LastModifiedAt = DateTime.UtcNow;
+    }
+
+    public void AddMetadata(string key, string value)
+    {
+        Metadata[key] = value;
+        LastModifiedAt = DateTime.UtcNow;
+    }
     public List<ChatMessage> ToChatHistory()
     {
         return Messages
-            .OrderBy(x => x.Timestamp)
-            .Select(x => new ChatMessage
+            .OrderBy(m => m.CreatedAt)
+            .Select(m => new ChatMessage
             {
-                Role = x.IsFromCustomer
+                Role = m.IsFromCustomer
                     ? ChatRole.User
                     : ChatRole.Assistant,
-                Content = x.Message,
-                Timestamp = x.Timestamp
+
+                Content = m.Message,
+
+                Timestamp = m.CreatedAt
             })
             .ToList();
     }
-
-    public override string ToString()
-    {
-        return $"{CustomerName} ({WhatsAppNumber})";
-    }
 }
+

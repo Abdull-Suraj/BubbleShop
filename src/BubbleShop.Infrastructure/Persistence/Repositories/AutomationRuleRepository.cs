@@ -2,6 +2,7 @@
 using BubbleShop.Domain.Entities;
 using BubbleShop.Domain.Interfaces.Repositories;
 using BubbleShop.Infrastructure.Persistence;
+using BubbleShop.Domain.Enums;
 
 namespace BubbleShop.Infrastructure.Persistence.Repositories;
 

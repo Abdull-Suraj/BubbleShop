@@ -1,12 +1,12 @@
 ﻿
+using BubbleShop.Application.AppServices;
+using BubbleShop.Application.Common.Models;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
-//using Microsoft.AspNetCore.Mvc;
+
 
 namespace BubbleShop.Application.Common.Commands;
 
-public class UnknownIntentCommand : IRequest<IActionResult>
-{
-    public string Message { get; set; } = string.Empty;
-    public string SuggestedResponse { get; set; } = string.Empty;
-}
+public sealed record UnknownIntentCommand(
+    string Message,
+    string SuggestedResponse
+) : IRequest<Result<MessageResponse>>;

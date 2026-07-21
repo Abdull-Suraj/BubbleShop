@@ -1,4 +1,5 @@
 using BubbleShop.Domain.Entities;
+using BubbleShop.Domain.Enums;
 using BubbleShop.Domain.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,4 +42,18 @@ public sealed class OrderRepository : Repository<Order>, IOrderRepository
             .Include(x => x.Payment)
             //.Include(x => x.Delivery)
             .FirstOrDefaultAsync(x => x.Id == orderId && !x.IsDeleted, cancellationToken);
+    public async Task<Order?> GetLatestPendingOrderAsync(
+    Guid customerId,
+    CancellationToken cancellationToken = default)
+    {
+        return await _dbSet
+            .Include(x => x.OrderItems)
+            .Where(x =>
+                x.CustomerId == customerId &&
+                !x.IsDeleted &&
+                (x.Status == OrderStatus.Pending ||
+                 x.Status == OrderStatus.Confirmed))
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }

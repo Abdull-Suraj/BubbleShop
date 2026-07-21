@@ -128,10 +128,25 @@ public sealed class OrdersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Cancel(Guid id, [FromBody] CancelOrderRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Cancel(
+    Guid id,
+    [FromBody] CancelOrderCommand request,
+    CancellationToken cancellationToken)
     {
-        var result = await _mediator.Send(new CancelOrderCommand(id, request.Reason), cancellationToken);
-        return result.IsSuccess ? NoContent() : BadRequest(new { error = result.Error });
+        var command = new CancelOrderCommand(
+            OrderId: id,
+            BusinessId: request.BusinessId,
+            ChannelUserId: request.ChannelUserId,
+            Channel: request.Channel,
+            Reason: request.Reason
+        );
+
+
+        var result = await _mediator.Send(command, cancellationToken);
+
+        return result.IsSuccess
+            ? NoContent()
+            : BadRequest(new { error = result.Error });
     }
 
     /// <summary>

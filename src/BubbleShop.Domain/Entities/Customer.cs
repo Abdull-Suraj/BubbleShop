@@ -11,12 +11,13 @@ public sealed class Customer : BaseEntity
     {
     }
 
-    public Customer( 
+    public Customer(
+         Guid businessId,
         string whatsappNumber, 
         string name, 
         string? email =null, 
-         string ? phoneNumber = null,
-        Guid? businessId = null)
+         string ? phoneNumber = null
+       )
     {
         Id = Guid.NewGuid();
         WhatsAppNumber = whatsappNumber;
